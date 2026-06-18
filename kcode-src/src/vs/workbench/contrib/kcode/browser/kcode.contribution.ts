@@ -16,20 +16,25 @@ import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContaine
 import { IViewContainersRegistry, IViewsRegistry, ViewContainerLocation, Extensions as ViewExtensions } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { KcodeChatView } from './chat/kcodeChatView.js';
+import { registerKcodeInlineEditActions } from './inlineEdit/kcodeInlineEdit.js';
 import { KcodeChatService } from './kcodeChatServiceImpl.js';
+import { KcodeSecretStorageService } from './kcodeSecretStorageServiceImpl.js';
 import {
 	KCODE_CHAT_VIEW_ID,
-	KCODE_CONFIG_ANTHROPIC_API_KEY,
 	KCODE_CONFIG_ANTHROPIC_BASE_URL,
 	KCODE_CONFIG_DEFAULT_MODEL,
-	KCODE_CONFIG_OPENAI_API_KEY,
 	KCODE_CONFIG_OPENAI_BASE_URL,
+	KCODE_CONFIG_OLLAMA_BASE_URL,
 	KCODE_CONFIG_PRIVACY_SEND_CODE,
 	KCODE_VIEW_CONTAINER_ID,
 } from '../common/kcodeConstants.js';
 import { IKcodeChatService } from '../common/kcodeChatService.js';
+import { IKcodeSecretStorageService } from '../common/kcodeSecretStorageService.js';
+import { KcodeProvider } from '../common/kcodeModels.js';
+import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
 
 registerSingleton(IKcodeChatService, KcodeChatService, InstantiationType.Delayed);
+registerSingleton(IKcodeSecretStorageService, KcodeSecretStorageService, InstantiationType.Delayed);
 
 const kcodeViewIcon = registerIcon('kcode-view-icon', Codicon.sparkle, localize('kcodeViewIcon', 'View icon of the Kcode chat view.'));
 
@@ -74,28 +79,22 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 			default: 'openai:gpt-4o',
 			description: localize('kcode.models.default', 'Default model for Kcode chat.'),
 		},
-		[KCODE_CONFIG_OPENAI_API_KEY]: {
-			type: 'string',
-			default: '',
-			description: localize('kcode.providers.openai.apiKey', 'OpenAI API key for Kcode.'),
-			scope: ConfigurationScope.APPLICATION,
-		},
 		[KCODE_CONFIG_OPENAI_BASE_URL]: {
 			type: 'string',
 			default: 'https://api.openai.com/v1',
 			description: localize('kcode.providers.openai.baseUrl', 'OpenAI API base URL.'),
 			scope: ConfigurationScope.APPLICATION,
 		},
-		[KCODE_CONFIG_ANTHROPIC_API_KEY]: {
-			type: 'string',
-			default: '',
-			description: localize('kcode.providers.anthropic.apiKey', 'Anthropic API key for Kcode.'),
-			scope: ConfigurationScope.APPLICATION,
-		},
 		[KCODE_CONFIG_ANTHROPIC_BASE_URL]: {
 			type: 'string',
 			default: 'https://api.anthropic.com',
 			description: localize('kcode.providers.anthropic.baseUrl', 'Anthropic API base URL.'),
+			scope: ConfigurationScope.APPLICATION,
+		},
+		[KCODE_CONFIG_OLLAMA_BASE_URL]: {
+			type: 'string',
+			default: 'http://127.0.0.1:11434',
+			description: localize('kcode.providers.ollama.baseUrl', 'Ollama API base URL for local models.'),
 			scope: ConfigurationScope.APPLICATION,
 		},
 		[KCODE_CONFIG_PRIVACY_SEND_CODE]: {
@@ -121,3 +120,53 @@ registerAction2(class OpenKcodeChatAction extends Action2 {
 		await accessor.get(IViewsService).openView(KCODE_CHAT_VIEW_ID, true);
 	}
 });
+
+registerAction2(class SetOpenAIApiKeyAction extends Action2 {
+	constructor() {
+		super({
+			id: 'workbench.action.kcode.setOpenAIApiKey',
+			title: localize2('kcode.setOpenAIApiKey', 'Set OpenAI API Key'),
+			f1: true,
+			category: localize2('kcode.category', 'Kcode'),
+		});
+	}
+
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		const quickInput = accessor.get(IQuickInputService);
+		const secretStorage = accessor.get(IKcodeSecretStorageService);
+		const value = await quickInput.input({
+			prompt: localize('kcode.setOpenAIApiKey.prompt', 'Enter your OpenAI API key'),
+			password: true,
+			ignoreFocusLost: true,
+		});
+		if (value) {
+			await secretStorage.setApiKey(KcodeProvider.OpenAI, value);
+		}
+	}
+});
+
+registerAction2(class SetAnthropicApiKeyAction extends Action2 {
+	constructor() {
+		super({
+			id: 'workbench.action.kcode.setAnthropicApiKey',
+			title: localize2('kcode.setAnthropicApiKey', 'Set Anthropic API Key'),
+			f1: true,
+			category: localize2('kcode.category', 'Kcode'),
+		});
+	}
+
+	override async run(accessor: ServicesAccessor): Promise<void> {
+		const quickInput = accessor.get(IQuickInputService);
+		const secretStorage = accessor.get(IKcodeSecretStorageService);
+		const value = await quickInput.input({
+			prompt: localize('kcode.setAnthropicApiKey.prompt', 'Enter your Anthropic API key'),
+			password: true,
+			ignoreFocusLost: true,
+		});
+		if (value) {
+			await secretStorage.setApiKey(KcodeProvider.Anthropic, value);
+		}
+	}
+});
+
+registerKcodeInlineEditActions();

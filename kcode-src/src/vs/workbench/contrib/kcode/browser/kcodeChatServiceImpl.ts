@@ -9,6 +9,7 @@ import { ChatDelta, ChatRequest, IKcodeChatService } from '../../common/kcodeCha
 import { modelProviderPrefix, ModelInfo } from '../../common/kcodeModels.js';
 import { AnthropicProvider } from './providers/anthropicProvider.js';
 import { IKcodeModelProvider } from './providers/ikcodeProvider.js';
+import { OllamaProvider } from './providers/ollamaProvider.js';
 import { OpenAIProvider } from './providers/openaiProvider.js';
 
 export class KcodeChatService extends Disposable implements IKcodeChatService {
@@ -23,6 +24,7 @@ export class KcodeChatService extends Disposable implements IKcodeChatService {
 		this.providers = [
 			instantiationService.createInstance(OpenAIProvider),
 			instantiationService.createInstance(AnthropicProvider),
+			instantiationService.createInstance(OllamaProvider),
 		];
 	}
 

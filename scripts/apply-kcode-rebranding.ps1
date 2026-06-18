@@ -41,8 +41,8 @@ const pkg = JSON.parse(raw);
 pkg.name = 'kcode-dev';
 delete pkg.distro;
 pkg.author = { name: 'Kcode' };
-pkg.repository = { type: 'git', url: 'https://github.com/sly21/kcode.git' };
-pkg.bugs = { url: 'https://github.com/sly21/kcode/issues' };
+pkg.repository = { type: 'git', url: 'https://github.com/sly22/kcode.git' };
+pkg.bugs = { url: 'https://github.com/sly22/kcode/issues' };
 fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
 "@ $pkgPath
 Write-Host "  package.json"

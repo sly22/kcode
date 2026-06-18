@@ -29,7 +29,7 @@ alwaysApply: false
   "serverApplicationName": "kcode-server",
   "serverDataFolderName": ".kcode-server",
   "tunnelApplicationName": "kcode-tunnel",
-  "reportIssueUrl": "https://github.com/sly21/kcode/issues/new"
+  "reportIssueUrl": "https://github.com/sly22/kcode/issues/new"
 }
 ```
 
@@ -46,8 +46,8 @@ alwaysApply: false
 {
   "name": "kcode-dev",
   "version": "0.1.0",
-  "repository": { "type": "git", "url": "https://github.com/sly21/kcode.git" },
-  "bugs": { "url": "https://github.com/sly21/kcode/issues" }
+  "repository": { "type": "git", "url": "https://github.com/sly22/kcode.git" },
+  "bugs": { "url": "https://github.com/sly22/kcode/issues" }
 }
 ```
 

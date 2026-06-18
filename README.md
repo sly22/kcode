@@ -3,7 +3,7 @@
 VSCode 소스를 기반으로 한 AI 네이티브 코드 에디터.
 
 - **제품명**: Kcode (케이코드)
-- **GitHub**: [sly21/kcode](https://github.com/sly21/kcode)
+- **GitHub**: [sly22/kcode](https://github.com/sly22/kcode)
 - **Upstream**: [microsoft/vscode](https://github.com/microsoft/vscode)
 
 ## 빠른 시작

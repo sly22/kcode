@@ -1,0 +1,25 @@
+# VSCode upstream (별도 clone/submodule — 리포 용량 절약)
+vscode-main/
+
+# Node / 빌드 산출물
+node_modules/
+out/
+out-build/
+out-vscode/
+.build/
+dist/
+*.log
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+!.vscode/extensions.json
+
+# Secrets
+.env
+.env.*
+*.pem
+credentials.json

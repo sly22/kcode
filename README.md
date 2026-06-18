@@ -20,10 +20,23 @@ npm run watch
 
 ### 2. 개발 실행 (Windows)
 
+루트에서 Kcode 래퍼를 사용하거나 upstream 스크립트를 직접 호출합니다.
+
 ```powershell
+.\scripts\code.bat
+# 또는
 cd vscode-main\vscode-main
 .\scripts\code.bat
 ```
+
+### 3. API 키 설정
+
+Kcode 실행 후 명령 팔레트(Ctrl+Shift+P):
+
+- `Kcode: Set OpenAI API Key`
+- `Kcode: Set Anthropic API Key`
+
+로컬 모델은 [Ollama](https://ollama.com/)를 설치하고 `ollama serve` 실행 후 `local:*` 모델을 선택합니다.
 
 ## 프로젝트 구조
 
@@ -31,9 +44,44 @@ cd vscode-main\vscode-main
 kcode/
 ├── .cursor/rules/     # Cursor AI 가이드 (로드맵·아키텍처·리브랜딩)
 ├── branding/          # product.json 및 리브랜딩 오버라이드
+├── kcode-src/         # Kcode contrib 소스 (apply 시 vscode-main에 복사)
 ├── scripts/           # 셋업·빌드·리브랜딩 스크립트
+├── website/           # 마케팅 사이트 (Next.js, dev/website 브랜치)
 └── vscode-main/       # VSCode upstream (gitignore, 로컬 clone)
 ```
+
+## 빌드 문제 해결
+
+### 디스크 공간 (ENOSPC)
+
+VSCode 전체 빌드는 **10GB+** 여유 공간이 필요합니다.
+
+- `node_modules`, `.build`, `out` 정리 후 재시도
+- Windows: 디스크 정리, `%TEMP%` 비우기
+- `npm ci` 실패 시 `ENOSPC` 로그 확인
+
+### Node.js 버전
+
+`.nvmrc`에 명시된 LTS 버전을 사용하세요. **Node 24** 등 최신 메이저는 upstream과 호환되지 않을 수 있습니다.
+
+```powershell
+node -v   # vscode-main/vscode-main/.nvmrc 와 일치하는지 확인
+```
+
+### Visual Studio Build Tools (Windows)
+
+네이티브 모듈 컴파일에 **C++ 워크로드**와 **Spectre-mitigated libraries**가 필요합니다.
+
+- Visual Studio Installer → *Desktop development with C++*
+- 개별 구성 요소: *MSVC … Spectre-mitigated libs* (x64/x86)
+- Spectre 오류 예: `MSB8040: Spectre-mitigated libraries are required`
+
+### 첫 실행 체크리스트
+
+1. `.\scripts\apply-kcode-rebranding.ps1` — product.json + kcode-src 복사
+2. `npm ci` + `npm run watch` (별도 터미널, 완료까지 10~30분)
+3. `.\scripts\code.bat` — Kcode 창 실행
+4. 보조 사이드바 → **Kcode Chat** 또는 `Ctrl+Shift+L`
 
 ## 로드맵
 

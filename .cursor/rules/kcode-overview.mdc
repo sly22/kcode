@@ -14,6 +14,8 @@ VSCode 소스(`vscode-main/vscode-main`)를 기반으로 AI 네이티브 코드 
 ## 소스 위치
 
 - 원본 VSCode 소스: `vscode-main/vscode-main/`
+- Kcode contrib 소스: `kcode-src/` (`apply-kcode-rebranding.ps1`로 upstream에 복사)
+- 마케팅 사이트: `website/` (Next.js, 루트 — 랜딩·다운로드·문서)
 - 신규 빌드 산출물·브랜드 자산은 별도 디렉터리 또는 패치 형태로 관리
 - 가능한 한 **upstream 파일은 직접 수정하지 말고** override/패치 레이어로 분리
 

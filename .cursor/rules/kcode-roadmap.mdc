@@ -37,23 +37,23 @@ alwaysApply: true
 
 ## Phase 3 — 핵심 AI 기능 (2~4주)
 
-- [~] 채팅(Ask): 컨텍스트 첨부(파일/선택/문제/터미널) — 툴바 + chip UI, `buildContextPrompt`; @file·@symbol 멘션 + `@` 피커; 빌드·런타임 미검증
-- [~] 인라인 편집(Cmd/Ctrl+K): 선택 영역 변환·생성 — `kcodeInlineEdit.ts`: QuickInput → LLM 스트리밍 → 적용/취소; 빌드·런타임 미검증
-- [~] 에이전트 모드: 도구 호출 및 승인 워크플로 — Agent 토글, LLM tool loop, 채팅 Approve/Reject UI, read_file/search/terminal 실제 실행; 빌드·런타임 미검증
-- [~] Tab 자동완성: 고스트 텍스트 + Next Edit Suggestion — inline completion provider 스켈레톤 등록, LLM 연동 미구현
-- [~] `@` 멘션(파일/심볼/Docs/Web) 컨텍스트 — `@path`·`@symbol:name` + 피커; Docs·Web 미구현
+- [~] 채팅(Ask): 컨텍스트 첨부(파일/선택/문제/터미널) — 툴바 + chip UI, `buildContextPrompt`; @file·@symbol·@docs·@web 멘션 + `@` 피커; 한국어 시스템 프롬프트 + `.kcode/rules/` 로드; 빌드·런타임 미검증
+- [~] 인라인 편집(Cmd/Ctrl+K): 선택 영역 변환·생성 — `kcodeInlineEdit.ts`: QuickInput → LLM 스트리밍 → 적용/취소; 한국어 시스템 프롬프트; 빌드·런타임 미검증
+- [~] 에이전트 모드: 도구 호출 및 승인 워크플로 — Agent 토글, LLM tool loop, Anthropic `tool_result` 포맷, Reject 시 배치 스킵, 채팅 Approve/Reject UI, read_file/search/terminal 실행; 빌드·런타임 미검증
+- [~] Tab 자동완성: 고스트 텍스트 — `kcodeInlineCompletion.ts` LLM 연동 (debounce 450ms, `kcode.privacy.sendCode` 필요); Next Edit Suggestion 설정 스켈레톤; 빌드·런타임 미검증
+- [~] `@` 멘션(파일/심볼/Docs/Web) 컨텍스트 — `@path`·`@symbol:name` + 피커; `@docs`·`@web` 스텁 리졸버; 실제 Docs/Web fetch 미구현
 
 ## Phase 4 — 배포·업데이트 (1~2주)
 
-- [~] 자체 업데이트 피드 — `website/src/app/api/updates.json` stub, 에디터 연동 미구현
+- [~] 자체 업데이트 피드 — `website/src/app/api/updates.json` stub + 에디터 `kcodeUpdateService` 시작 시 체크 (`kcode.update.feedUrl`); 자동 다운로드·설치 미구현
 - [~] 텔레메트리 OFF — `product.json` enableTelemetry false, `kcode.telemetry.enabled` 기본 false
 - [ ] Windows(Inno Setup), macOS(notarize), Linux(deb/rpm/AppImage) 빌드
 - [ ] 코드 서명(EV 인증서, Apple Developer ID)
 
 ## Phase 5 — 차별화 (지속)
 
-- [ ] 한국어 LLM 프롬프트 최적화·온보딩
-- [ ] MCP, 커스텀 룰(`.kcode/rules/`), 스킬 시스템
+- [~] 한국어 LLM 프롬프트 최적화·온보딩 — `kcodeSystemPrompt.ts` 기본 한국어 시스템 프롬프트; 온보딩 UI 미구현
+- [~] MCP, 커스텀 룰(`.kcode/rules/`), 스킬 시스템 — `.kcode/rules/*.md` 채팅 컨텍스트 로드; MCP·스킬 미구현
 - [ ] 백그라운드 에이전트, 코드 리뷰 봇 등 고급 기능
 
 ## 부가 산출물
@@ -62,6 +62,6 @@ alwaysApply: true
 
 ## 브랜치 메모
 
-- `dev/phase3-features` — **현재 작업 브랜치**: Phase 3 agent loop, @ picker, tab completion skeleton
+- `dev/phase3-features` — **현재 작업 브랜치**: Tab LLM completion, Anthropic tool_result, @docs/@web stub, update check, Korean prompts, `.kcode/rules/`
 - `dev/website` — `dev/phase3-features`에 머지 완료, 별도 브랜치 유지 불필요
 - `main` — 안정 브랜치 (Phase 3 미머지)

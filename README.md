@@ -35,9 +35,11 @@ cd vscode-main\vscode-main
 | ---- | ----------- |
 | 채팅 | 보조 사이드바 **Kcode Chat**, `Ctrl+Shift+L` |
 | 인라인 편집 | 코드 선택 후 `Ctrl+K` → 적용/취소 확인 |
-| Agent mode | 채팅 툴바 **Agent mode** — read_file/search/terminal, 채팅 UI 승인 |
-| @ 멘션 | `@path/to/file.ts`, `@symbol:Name` + `@` 입력 시 피커 |
-| Tab 완성 | 인라인 completion provider 스켈레톤 (`kcode.completion.enabled`) |
+| Agent mode | 채팅 툴바 **Agent mode** — read_file/search/terminal, 채팅 UI 승인 (Reject 시 배치 스킵) |
+| @ 멘션 | `@path/to/file.ts`, `@symbol:Name`, `@docs`, `@web` + `@` 입력 시 피커 |
+| Tab 완성 | LLM 고스트 텍스트 (`kcode.completion.enabled`, `kcode.privacy.sendCode` 필요) |
+| 워크스페이스 룰 | `.kcode/rules/*.md` — 채팅 시스템 프롬프트에 자동 주입 |
+| 업데이트 체크 | 시작 30초 후 `kcode.update.feedUrl` 피드 확인 (기본 `https://kcode.dev/api/updates.json`) |
 | 컨텍스트 첨부 | Attach file / selection / terminal / problems |
 
 ### 5. API 키 설정

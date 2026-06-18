@@ -100,4 +100,42 @@ import './contrib/kcode/browser/kcode.contribution.js';
     }
 }
 
+# About 다이얼로그 — Kcode 부제 (// KCODE: 마커)
+$aboutDialog = Join-Path $vscode "src\vs\workbench\browser\parts\dialogs\dialog.ts"
+if (Test-Path $aboutDialog) {
+    $content = Get-Content $aboutDialog -Raw
+    if ($content -notmatch 'KCODE: start - about dialog title') {
+        $old = "		title: productService.nameLong,"
+        $new = @'
+		// KCODE: start - about dialog title
+		title: `${productService.nameLong} — AI Native Code Editor`,
+		// KCODE: end - about dialog title
+'@
+        $content = $content.Replace($old, $new)
+        [System.IO.File]::WriteAllText($aboutDialog, $content)
+        Write-Host "  dialog.ts (about title)"
+    }
+}
+
+# Welcome 페이지 — Copilot 문구를 Kcode로 치환 (// KCODE: 마커)
+$gettingStarted = Join-Path $vscode "src\vs\workbench\contrib\welcomeGettingStarted\common\gettingStartedContent.ts"
+if (Test-Path $gettingStarted) {
+    $content = Get-Content $gettingStarted -Raw
+    if ($content -notmatch 'KCODE: start - welcome rebrand') {
+        $content = $content -replace '"Use AI features with Copilot for free"', '"Get started with Kcode AI — your AI-native editor"'
+        $content = $content -replace 'You can use \[Copilot\]', 'You can use [Kcode AI]'
+        $content = $content -replace 'Start to Chat', 'Open Kcode Chat'
+        $content = $content -replace 'setupCopilotButton\.chatWithCopilot', 'setupKcodeButton.openChat'
+        $content = $content -replace 'VS Code Copilot multi file edits', 'Kcode AI assistant'
+        $content = $content -replace 'By continuing with \{0\} Copilot', 'By continuing with {0} Kcode AI'
+        $content = $content -replace '\{0\} Copilot may show', '{0} Kcode AI may use external LLM providers. Configuration may show'
+        $content = $content -replace 'GitHub Copilot', 'Kcode AI'
+        $content = $content -replace 'copilot\.com', 'github.com/sly22/kcode'
+        $marker = "export function copilotSettingsMessage"
+        $content = $content.Replace($marker, "// KCODE: start - welcome rebrand`n$marker")
+        [System.IO.File]::WriteAllText($gettingStarted, $content)
+        Write-Host "  gettingStartedContent.ts (Kcode strings)"
+    }
+}
+
 Write-Host "Kcode 리브랜딩 완료."

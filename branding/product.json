@@ -85,6 +85,58 @@
 			}
 		}
 	],
+	"defaultChatAgent": {
+		"extensionId": "kcode.ai",
+		"chatExtensionId": "kcode.chat",
+		"chatExtensionOutputId": "kcode.chat.Kcode Chat.log",
+		"chatExtensionOutputExtensionStateCommand": "workbench.action.kcode.openChat",
+		"documentationUrl": "https://github.com/sly22/kcode#readme",
+		"termsStatementUrl": "https://github.com/sly22/kcode/blob/main/LICENSE",
+		"privacyStatementUrl": "https://github.com/sly22/kcode/blob/main/LICENSE",
+		"skusDocumentationUrl": "https://github.com/sly22/kcode#readme",
+		"publicCodeMatchesUrl": "https://github.com/sly22/kcode#readme",
+		"managePlanUrl": "https://github.com/sly22/kcode#readme",
+		"upgradePlanUrl": "https://github.com/sly22/kcode#readme",
+		"signUpUrl": "https://github.com/sly22/kcode#readme",
+		"provider": {
+			"default": {
+				"id": "kcode",
+				"name": "Kcode"
+			},
+			"enterprise": {
+				"id": "kcode-enterprise",
+				"name": "Kcode Enterprise"
+			},
+			"google": {
+				"id": "google",
+				"name": "Google"
+			},
+			"apple": {
+				"id": "apple",
+				"name": "Apple"
+			}
+		},
+		"providerExtensionId": "kcode.auth",
+		"providerUriSetting": "kcode.enterprise.uri",
+		"providerScopes": [
+			["user:email"]
+		],
+		"entitlementUrl": "https://github.com/sly22/kcode",
+		"entitlementSignupLimitedUrl": "https://github.com/sly22/kcode",
+		"chatQuotaExceededContext": "kcode.chat.quotaExceeded",
+		"completionsQuotaExceededContext": "kcode.completions.quotaExceeded",
+		"walkthroughCommand": "workbench.action.kcode.openChat",
+		"completionsMenuCommand": "workbench.action.kcode.openChat",
+		"chatRefreshTokenCommand": "workbench.action.kcode.openChat",
+		"generateCommitMessageCommand": "workbench.action.kcode.openChat",
+		"resolveMergeConflictsCommand": "workbench.action.kcode.openChat",
+		"completionsAdvancedSetting": "kcode.providers.disabled",
+		"completionsEnablementSetting": "kcode.providers.disabled",
+		"nextEditSuggestionsSetting": "kcode.providers.disabled",
+		"tokenEntitlementUrl": "https://github.com/sly22/kcode",
+		"mcpRegistryDataUrl": "https://github.com/sly22/kcode",
+		"managedSettingsUrl": "https://github.com/sly22/kcode"
+	},
 	"onboardingKeymaps": [
 		{
 			"id": "vscode",

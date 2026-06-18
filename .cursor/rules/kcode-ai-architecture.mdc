@@ -1,23 +1,23 @@
 ---
-description: Kode AI 기능(채팅·인라인 편집·에이전트·자동완성) 아키텍처
-globs: vscode-main/vscode-main/src/vs/workbench/contrib/**,vscode-main/vscode-main/extensions/copilot/**,vscode-main/vscode-main/extensions/kode-**
+description: Kcode AI 기능(채팅·인라인 편집·에이전트·자동완성) 아키텍처
+globs: vscode-main/vscode-main/src/vs/workbench/contrib/**,vscode-main/vscode-main/extensions/copilot/**,vscode-main/vscode-main/extensions/kcode-**
 alwaysApply: false
 ---
 
-# Kode AI 아키텍처
+# Kcode AI 아키텍처
 
 ## 모듈 배치 원칙
 
-- 코어 통합점은 `src/vs/workbench/contrib/kode/` 하위 새 폴더.
-- 외부에서 교체 가능한 기능은 `extensions/kode-chat/`, `extensions/kode-agent/`,
-  `extensions/kode-completion/` 처럼 확장으로 구현.
-- `extensions/copilot/` 코드는 참고만 하고 **Kode는 자체 확장 ID 사용**.
+- 코어 통합점은 `src/vs/workbench/contrib/kcode/` 하위 새 폴더.
+- 외부에서 교체 가능한 기능은 `extensions/kcode-chat/`, `extensions/kcode-agent/`,
+  `extensions/kcode-completion/` 처럼 확장으로 구현.
+- `extensions/copilot/` 코드는 참고만 하고 **Kcode는 자체 확장 ID 사용**.
 
 ## 핵심 서비스 인터페이스 예시
 
 ```ts
-// src/vs/workbench/contrib/kode/common/kodeChatService.ts
-export interface IKodeChatService {
+// src/vs/workbench/contrib/kcode/common/kcodeChatService.ts
+export interface IKcodeChatService {
   readonly _serviceBrand: undefined;
   sendMessage(req: ChatRequest, token: CancellationToken): AsyncIterable<ChatDelta>;
   listModels(): Promise<ModelInfo[]>;
@@ -34,9 +34,9 @@ export interface ChatRequest {
 LLM 제공자는 어댑터 패턴으로 분리:
 
 ```
-kode/
+kcode/
   common/
-    kodeChatService.ts        # 인터페이스
+    kcodeChatService.ts        # 인터페이스
   browser/
     providers/
       openaiProvider.ts
@@ -54,17 +54,17 @@ kode/
 | Ask 채팅    | 우측 사이드바 뷰                       | `chatView/`                  |
 | 인라인 편집 | `Ctrl+K` (선택 영역 위에 인풋 박스)    | `inlineEdit/`                |
 | 에이전트    | 채팅 모드 토글, 도구 승인 모달          | `agent/`                     |
-| 자동완성    | `editor.contrib` 인라인 컴플리션 API   | `extensions/kode-completion/` |
+| 자동완성    | `editor.contrib` 인라인 컴플리션 API   | `extensions/kcode-completion/` |
 | Next Edit   | 멀티 캐럿 미리보기                     | `editor.contrib` 신규 위젯   |
 
 ## 컨텍스트 시스템
 
 - `@file`, `@folder`, `@symbol`, `@docs`, `@web`, `@git` 등 `@` 멘션.
 - 첨부 시 토큰 예산 안에서 우선순위 큐로 컨텍스트 패킹.
-- 파일 임베딩은 워크스페이스별 `~/.kode/index/<hash>/` 에 캐시.
+- 파일 임베딩은 워크스페이스별 `~/.kcode/index/<hash>/` 에 캐시.
 
 ## 보안·프라이버시
 
 - API 키는 `ISecretStorageService` 사용, 평문 저장 금지.
-- 외부 호출 전 사용자 동의 토글(`kode.privacy.sendCode`).
+- 외부 호출 전 사용자 동의 토글(`kcode.privacy.sendCode`).
 - 에이전트 도구 호출은 화이트리스트 + 사용자 승인이 기본 (자동 승인은 옵트인).

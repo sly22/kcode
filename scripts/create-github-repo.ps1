@@ -2,7 +2,7 @@
 # 사용: .\scripts\create-github-repo.ps1 [-Owner ethegarden] [-Private]
 param(
     [string]$Owner = "",
-    [string]$RepoName = "kode",
+    [string]$RepoName = "kcode",
     [switch]$Private
 )
 
@@ -30,7 +30,7 @@ try {
     gh repo view $fullName 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Host "리포 생성: $fullName"
-        gh repo create $RepoName --source=. --remote=origin $visibility --description "AI-native code editor based on VSCode (Kode)"
+        gh repo create $RepoName --source=. --remote=origin $visibility --description "AI-native code editor based on VSCode (Kcode)"
     } else {
         Write-Host "리포가 이미 있습니다: https://github.com/$fullName"
         git remote get-url origin 2>$null | Out-Null

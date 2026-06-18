@@ -106,6 +106,20 @@ pm ci를 실행하세요.
 - 개별 구성 요소: *MSVC … Spectre-mitigated libs* (x64/x86)
 - Spectre 오류 예: `MSB8040: Spectre-mitigated libraries are required`
 
+#### 관리자 PowerShell (자동 설치)
+
+**관리자 권한** PowerShell에서 Visual Studio Installer `setup.exe`로 Spectre 구성 요소를 추가할 수 있습니다. 관리자 권한이 없으면 **Exit code 5007**이 발생합니다. `installPath`는 설치된 Build Tools 버전·경로에 맞게 조정하세요.
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe" modify `
+ --installPath "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools" `
+ --add Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre `
+ --add Microsoft.VisualStudio.Component.VC.142.x86.x64.Spectre `
+ --passive --norestart
+```
+
+Spectre 설치 후에는 `node_modules`를 삭제한 뒤 **Node 24 PATH**가 잡힌 터미널에서 `npm ci`를 다시 실행하세요.
+
 ### 첫 실행 체크리스트
 
 1. `.\scripts\apply-kcode-rebranding.ps1` — product.json + kcode-src 복사

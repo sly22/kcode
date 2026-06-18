@@ -12,11 +12,8 @@ export const SITE = {
 } as const;
 
 export const INTEGRATION = {
-  /** 에디터 업데이트 피드 URL (배포 후 실제 도메인으로 교체) */
   updateFeedUrl: "https://kcode.dev/api/updates.json",
-  /** 공개 모델 목록 동기화 엔드포인트 */
   modelsEndpoint: "/api/models.json",
-  /** kcode:// 딥링크 예시 */
   deepLinks: {
     openDocs: "kcode://docs/getting-started",
     openSettings: "kcode://settings/ai",

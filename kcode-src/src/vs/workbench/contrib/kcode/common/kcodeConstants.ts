@@ -14,4 +14,10 @@ export const KCODE_CONFIG_OLLAMA_BASE_URL = 'kcode.providers.ollama.baseUrl';
 export const KCODE_CONFIG_PRIVACY_SEND_CODE = 'kcode.privacy.sendCode';
 export const KCODE_CONFIG_AGENT_MODE = 'kcode.agent.enabled';
 export const KCODE_CONFIG_TAB_COMPLETION = 'kcode.completion.enabled';
+export const KCODE_CONFIG_NEXT_EDIT_SUGGESTION = 'kcode.nextEditSuggestion.enabled';
+export const KCODE_CONFIG_UPDATE_FEED_URL = 'kcode.update.feedUrl';
+export const KCODE_CONFIG_UPDATE_CHECK = 'kcode.update.checkOnStartup';
 export const KCODE_CONFIG_TELEMETRY = 'kcode.telemetry.enabled';
+
+export const KCODE_TAB_COMPLETION_DEBOUNCE_MS = 450;
+export const KCODE_TAB_COMPLETION_MAX_GHOST_CHARS = 120;

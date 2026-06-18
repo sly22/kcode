@@ -35,9 +35,10 @@ cd vscode-main\vscode-main
 | ---- | ----------- |
 | 채팅 | 보조 사이드바 **Kcode Chat**, `Ctrl+Shift+L` |
 | 인라인 편집 | 코드 선택 후 `Ctrl+K` → 적용/취소 확인 |
-| @ 멘션 | 채팅 입력에 `@path/to/file.ts` |
+| Agent mode | 채팅 툴바 **Agent mode** — read_file/search/terminal, 채팅 UI 승인 |
+| @ 멘션 | `@path/to/file.ts`, `@symbol:Name` + `@` 입력 시 피커 |
+| Tab 완성 | 인라인 completion provider 스켈레톤 (`kcode.completion.enabled`) |
 | 컨텍스트 첨부 | Attach file / selection / terminal / problems |
-| Agent mode | 채팅 툴바 **Agent mode** (도구 승인 stub) |
 
 ### 5. API 키 설정
 

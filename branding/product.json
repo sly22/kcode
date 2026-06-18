@@ -1,6 +1,8 @@
 {
 	"nameShort": "Kcode",
 	"nameLong": "Kcode",
+	"enableTelemetry": false,
+	"enableCrashReporter": false,
 	"applicationName": "kcode",
 	"dataFolderName": ".kcode",
 	"sharedDataFolderName": ".kcode-shared",

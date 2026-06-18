@@ -7,7 +7,7 @@ alwaysApply: true
 
 각 단계는 이전 단계가 안정화된 뒤 진행한다. 단계마다 PR 단위로 작은 변경을 누적.
 
-> **현재 브랜치**: `dev/phase3-features` (2026-06 기준). `kcode-src/` contrib 31파일, `website/` 머지 완료.
+> **현재 브랜치**: `dev/phase3-features` (2026-06 기준). `kcode-src/` contrib 36파일+, `website/` 머지 완료.
 
 ## Phase 0 — 환경 셋업 (1~2일)
 
@@ -32,23 +32,23 @@ alwaysApply: true
 - [x] `kcode-src/…/contrib/kcode/` 디렉터리 생성, 채팅 사이드바 등록 — `KcodeChatView`, `Ctrl+Shift+L`, 모델 피커
 - [x] LLM 추상화 레이어(`IKcodeChatService`) 정의 — OpenAI/Anthropic/Ollama 어댑터, `KcodeChatService` 라우팅
 - [x] 인증·API 키 저장 (Secret Storage) — `IKcodeSecretStorageService`, `Kcode: Set * API Key` 명령, 설정→Secret 마이그레이션
-- [~] OpenAI/Anthropic 실 API + 스트리밍 — `kcodeHttpClient` SSE/NDJSON, `OpenAIProvider`·`AnthropicProvider`·`OllamaProvider` 구현; 빌드·런타임 API 호출 미검증
+- [~] OpenAI/Anthropic 실 API + 스트리밍 — SSE/NDJSON, tool_calls 스트리밍(OpenAI·Anthropic); 빌드·런타임 API 호출 미검증
 - [x] 자세한 설계는 **kcode-ai-architecture** 룰 참고
 
 ## Phase 3 — 핵심 AI 기능 (2~4주)
 
-- [~] 채팅(Ask): 컨텍스트 첨부(파일/선택/문제/터미널) — 툴바 Attach file/selection/terminal/problems + chip UI, `buildContextPrompt`; @file 멘션 `parseMentions`+`resolveMentions`; 빌드·런타임 미검증
-- [~] 인라인 편집(Cmd/Ctrl+K): 선택 영역 변환·생성 — `kcodeInlineEdit.ts`: QuickInput 지시 → LLM 스트리밍 → 적용/취소 QuickPick → `executeEdits`; 빌드·런타임 미검증
-- [~] 에이전트 모드: 도구 호출 및 승인 워크플로 — Agent mode 토글, `KCODE_AGENT_TOOLS`(read_file/search/terminal), `IKcodeAgentService` 승인 UI + stub 실행; chat→provider tool call 루프·실제 도구 실행 미연결
-- [ ] Tab 자동완성: 고스트 텍스트 + Next Edit Suggestion
-- [~] `@` 멘션(파일/심볼/Docs/Web) 컨텍스트 — `@path/to/file` 파싱, 워크스페이스 상대경로·basename shallow 검색; 심볼 picker·Docs·Web 미구현
+- [~] 채팅(Ask): 컨텍스트 첨부(파일/선택/문제/터미널) — 툴바 + chip UI, `buildContextPrompt`; @file·@symbol 멘션 + `@` 피커; 빌드·런타임 미검증
+- [~] 인라인 편집(Cmd/Ctrl+K): 선택 영역 변환·생성 — `kcodeInlineEdit.ts`: QuickInput → LLM 스트리밍 → 적용/취소; 빌드·런타임 미검증
+- [~] 에이전트 모드: 도구 호출 및 승인 워크플로 — Agent 토글, LLM tool loop, 채팅 Approve/Reject UI, read_file/search/terminal 실제 실행; 빌드·런타임 미검증
+- [~] Tab 자동완성: 고스트 텍스트 + Next Edit Suggestion — inline completion provider 스켈레톤 등록, LLM 연동 미구현
+- [~] `@` 멘션(파일/심볼/Docs/Web) 컨텍스트 — `@path`·`@symbol:name` + 피커; Docs·Web 미구현
 
 ## Phase 4 — 배포·업데이트 (1~2주)
 
-- [~] 자체 업데이트 피드 — `website/src/app/api/updates.json` placeholder stub만 존재, 에디터 연동 미구현
+- [~] 자체 업데이트 피드 — `website/src/app/api/updates.json` stub, 에디터 연동 미구현
+- [~] 텔레메트리 OFF — `product.json` enableTelemetry false, `kcode.telemetry.enabled` 기본 false
 - [ ] Windows(Inno Setup), macOS(notarize), Linux(deb/rpm/AppImage) 빌드
 - [ ] 코드 서명(EV 인증서, Apple Developer ID)
-- [ ] 텔레메트리 OFF 또는 자체 엔드포인트 구성
 
 ## Phase 5 — 차별화 (지속)
 
@@ -62,6 +62,6 @@ alwaysApply: true
 
 ## 브랜치 메모
 
-- `dev/phase3-features` — **현재 작업 브랜치**: Phase 3 (inline edit apply, @file mentions, agent skeleton) + website 머지
+- `dev/phase3-features` — **현재 작업 브랜치**: Phase 3 agent loop, @ picker, tab completion skeleton
 - `dev/website` — `dev/phase3-features`에 머지 완료, 별도 브랜치 유지 불필요
 - `main` — 안정 브랜치 (Phase 3 미머지)

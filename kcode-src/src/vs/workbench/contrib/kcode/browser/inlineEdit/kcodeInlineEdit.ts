@@ -8,11 +8,12 @@ import { CancellationTokenSource } from '../../../../../base/common/cancellation
 import { isCodeEditor } from '../../../../../editor/browser/editorBrowser.js';
 import { localize, localize2 } from '../../../../../nls.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
-import { IQuickInputService } from '../../../../../platform/quickinput/common/quickInput.js';
+import { IQuickInputService, IQuickPickItem } from '../../../../../platform/quickinput/common/quickInput.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { IKcodeChatService } from '../../common/kcodeChatService.js';
+import { stripMarkdownCodeFences } from '../../common/kcodeCodeUtils.js';
 import { KCODE_CONFIG_DEFAULT_MODEL } from '../../common/kcodeConstants.js';
 
 export function registerKcodeInlineEditActions(): void {
@@ -86,14 +87,37 @@ export function registerKcodeInlineEditActions(): void {
 				}
 			}
 
-			if (!result.trim()) {
+			const cleaned = stripMarkdownCodeFences(result);
+			if (!cleaned) {
 				notificationService.warn(localize('kcode.inlineEdit.emptyResult', 'Kcode returned an empty edit.'));
 				return;
 			}
 
-			notificationService.info(
-				localize('kcode.inlineEdit.preview', 'Kcode inline edit (preview):\n{0}', result.slice(0, 500))
-			);
+			const preview = cleaned.length > 400 ? `${cleaned.slice(0, 400)}…` : cleaned;
+			const items: IQuickPickItem[] = [
+				{
+					label: localize('kcode.inlineEdit.apply', 'Apply edit'),
+					description: preview.replace(/\n/g, ' '),
+				},
+				{
+					label: localize('kcode.inlineEdit.discard', 'Discard'),
+					description: localize('kcode.inlineEdit.discard.desc', 'Keep the original selection'),
+				},
+			];
+
+			const picked = await quickInput.pick(items, {
+				placeHolder: localize('kcode.inlineEdit.review', 'Review Kcode inline edit'),
+				ignoreFocusLost: true,
+			});
+
+			if (picked?.label === items[0].label) {
+				control.executeEdits('kcode-inline-edit', [{
+					range: selection,
+					text: cleaned,
+				}]);
+				control.focus();
+				notificationService.info(localize('kcode.inlineEdit.applied', 'Kcode inline edit applied.'));
+			}
 		}
 	});
 }

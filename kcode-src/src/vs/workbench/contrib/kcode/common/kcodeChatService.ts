@@ -22,7 +22,7 @@ export interface ToolSpec {
 }
 
 export interface ContextItem {
-	readonly kind: 'file' | 'selection' | 'terminal' | 'mention';
+	readonly kind: 'file' | 'selection' | 'terminal' | 'problems' | 'mention';
 	readonly uri?: string;
 	readonly content?: string;
 }

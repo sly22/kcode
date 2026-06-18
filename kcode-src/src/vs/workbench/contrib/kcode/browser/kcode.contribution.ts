@@ -16,6 +16,7 @@ import { ViewPaneContainer } from '../../../browser/parts/views/viewPaneContaine
 import { IViewContainersRegistry, IViewsRegistry, ViewContainerLocation, Extensions as ViewExtensions } from '../../../common/views.js';
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { KcodeChatView } from './chat/kcodeChatView.js';
+import { KcodeAgentService, IKcodeAgentService } from './agent/kcodeAgentService.js';
 import { registerKcodeInlineEditActions } from './inlineEdit/kcodeInlineEdit.js';
 import { KcodeChatService } from './kcodeChatServiceImpl.js';
 import { KcodeSecretStorageService } from './kcodeSecretStorageServiceImpl.js';
@@ -26,6 +27,7 @@ import {
 	KCODE_CONFIG_OPENAI_BASE_URL,
 	KCODE_CONFIG_OLLAMA_BASE_URL,
 	KCODE_CONFIG_PRIVACY_SEND_CODE,
+	KCODE_CONFIG_AGENT_MODE,
 	KCODE_VIEW_CONTAINER_ID,
 } from '../common/kcodeConstants.js';
 import { IKcodeChatService } from '../common/kcodeChatService.js';
@@ -35,6 +37,7 @@ import { IQuickInputService } from '../../../../platform/quickinput/common/quick
 
 registerSingleton(IKcodeChatService, KcodeChatService, InstantiationType.Delayed);
 registerSingleton(IKcodeSecretStorageService, KcodeSecretStorageService, InstantiationType.Delayed);
+registerSingleton(IKcodeAgentService, KcodeAgentService, InstantiationType.Delayed);
 
 const kcodeViewIcon = registerIcon('kcode-view-icon', Codicon.sparkle, localize('kcodeViewIcon', 'View icon of the Kcode chat view.'));
 
@@ -101,6 +104,12 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 			type: 'boolean',
 			default: false,
 			description: localize('kcode.privacy.sendCode', 'Allow sending workspace code to external LLM providers.'),
+			scope: ConfigurationScope.APPLICATION,
+		},
+		[KCODE_CONFIG_AGENT_MODE]: {
+			type: 'boolean',
+			default: false,
+			description: localize('kcode.agent.enabled', 'Enable Kcode agent mode (tool calls with user approval).'),
 			scope: ConfigurationScope.APPLICATION,
 		},
 	},

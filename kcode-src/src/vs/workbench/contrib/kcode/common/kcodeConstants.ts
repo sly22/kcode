@@ -12,3 +12,4 @@ export const KCODE_CONFIG_ANTHROPIC_API_KEY = 'kcode.providers.anthropic.apiKey'
 export const KCODE_CONFIG_ANTHROPIC_BASE_URL = 'kcode.providers.anthropic.baseUrl';
 export const KCODE_CONFIG_OLLAMA_BASE_URL = 'kcode.providers.ollama.baseUrl';
 export const KCODE_CONFIG_PRIVACY_SEND_CODE = 'kcode.privacy.sendCode';
+export const KCODE_CONFIG_AGENT_MODE = 'kcode.agent.enabled';

@@ -12,8 +12,8 @@ export interface ParsedMentions {
 const MENTION_PATTERN = /@([\w./\\-]+)/g;
 
 /**
- * Stub @-mention parser. Recognizes `@filename` tokens and strips them from
- * the outgoing prompt while emitting mention context items for the chat service.
+ * Parses `@filename` tokens from chat input. File content is resolved separately
+ * via {@link resolveMentions} in kcodeMentionResolver.ts.
  */
 export function parseMentions(text: string): ParsedMentions {
 	const mentions: ContextItem[] = [];

@@ -51,6 +51,16 @@
 	color: var(--vscode-textLink-foreground);
 }
 
+.kcode-chat-agent-banner {
+	display: none;
+	padding: 6px 12px;
+	font-size: 12px;
+	background: var(--vscode-inputValidation-infoBackground);
+	color: var(--vscode-inputValidation-infoForeground);
+	border-bottom: 1px solid var(--vscode-panel-border);
+	flex-shrink: 0;
+}
+
 .kcode-chat-toolbar {
 	display: flex;
 	gap: 8px;

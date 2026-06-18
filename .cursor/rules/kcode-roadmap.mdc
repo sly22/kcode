@@ -35,11 +35,11 @@ alwaysApply: true
 
 ## Phase 3 — 핵심 AI 기능 (2~4주)
 
-- [~] 채팅(Ask): 컨텍스트 첨부(파일/선택영역/문제/터미널) — Attach file/selection UI, @mention parser stub; 터미널·문제 첨부 미구현
-- [~] 인라인 편집(Cmd/Ctrl+K): 선택 영역 변환·생성 — 액션·프롬프트·미리보기 알림 skeleton; 에디터 적용 미구현
-- [ ] 에이전트 모드: 도구 호출(파일 편집, 터미널, 검색) 및 승인 워크플로
+- [~] 채팅(Ask): 컨텍스트 첨부(파일/선택영역/문제/터미널) — 파일·선택·터미널·Problems 첨부 UI; @mention 파일 해석 구현
+- [~] 인라인 편집(Cmd/Ctrl+K): 선택 영역 변환·생성 — Ctrl+K + LLM + 적용 확인(executeEdits); 빌드·런타임 검증 필요
+- [~] 에이전트 모드: 도구 호출(파일 편집, 터미널, 검색) 및 승인 워크플로 — read_file/search/terminal stub + 승인 UI; 실제 도구 실행 미구현
 - [ ] Tab 자동완성: 고스트 텍스트 + Next Edit Suggestion
-- [~] `@` 멘션(파일/심볼/Docs/Web) 컨텍스트 시스템 — `kcodeMentionParser` stub; 파일 해석·picker 미구현
+- [~] `@` 멘션(파일/심볼/Docs/Web) 컨텍스트 시스템 — @file 경로 해석·워크스페이스 검색; 심볼/picker/Web 미구현
 
 ## Phase 4 — 배포·업데이트 (1~2주)
 
@@ -56,5 +56,5 @@ alwaysApply: true
 
 ## 브랜치 메모
 
-- `dev/phase2-ai-skeleton` — AI 골격 + Phase 3 시작 (현재 작업)
-- `dev/website` — Next.js 마케팅 사이트 (별도 유지; `website/.gitignore` 충돌로 자동 머지 보류)
+- `dev/phase3-features` — Phase 3: inline edit apply, @mentions, agent stub (현재 작업)
+- `dev/website` — Next.js 마케팅 사이트 (phase3-features에 website/ 포함됨)

@@ -29,7 +29,17 @@ cd vscode-main\vscode-main
 .\scripts\code.bat
 ```
 
-### 3. API 키 설정
+### 4. Kcode AI 기능 (Phase 3)
+
+| 기능 | 단축키 / UI |
+| ---- | ----------- |
+| 채팅 | 보조 사이드바 **Kcode Chat**, `Ctrl+Shift+L` |
+| 인라인 편집 | 코드 선택 후 `Ctrl+K` → 적용/취소 확인 |
+| @ 멘션 | 채팅 입력에 `@path/to/file.ts` |
+| 컨텍스트 첨부 | Attach file / selection / terminal / problems |
+| Agent mode | 채팅 툴바 **Agent mode** (도구 승인 stub) |
+
+### 5. API 키 설정
 
 Kcode 실행 후 명령 팔레트(Ctrl+Shift+P):
 

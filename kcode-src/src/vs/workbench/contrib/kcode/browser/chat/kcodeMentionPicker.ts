@@ -85,6 +85,30 @@ export class KcodeMentionPicker extends Disposable {
 
 	private async collectItems(filter: string): Promise<MentionPickerItem[]> {
 		const items: MentionPickerItem[] = [];
+		const lower = filter.toLowerCase();
+
+		if (!filter || 'docs'.startsWith(lower) || lower.startsWith('docs')) {
+			items.push({
+				label: '@docs',
+				detail: localize('kcode.mention.docs', 'Kcode documentation (stub)'),
+				insertText: '@docs',
+			});
+			if (lower.startsWith('docs:') || lower === 'docs') {
+				items.push({
+					label: '@docs:api',
+					detail: localize('kcode.mention.docsApi', 'API reference stub'),
+					insertText: '@docs:api',
+				});
+			}
+		}
+
+		if (!filter || 'web'.startsWith(lower) || lower.startsWith('web')) {
+			items.push({
+				label: '@web',
+				detail: localize('kcode.mention.web', 'Web search (stub)'),
+				insertText: '@web',
+			});
+		}
 
 		for (const sym of listSymbolCandidates(filter, this.editorService)) {
 			items.push(sym);

@@ -10,6 +10,8 @@ export interface ParsedMentions {
 }
 
 const SYMBOL_MENTION = /@symbol:([\w]+)/g;
+const DOCS_MENTION = /@docs(?::([\w./\\-]*))?/g;
+const WEB_MENTION = /@web(?::([\w./\\-]*))?/g;
 const FILE_MENTION = /@([\w./\\-]+)/g;
 
 /**
@@ -29,10 +31,30 @@ export function parseMentions(text: string): ParsedMentions {
 		});
 	}
 
+	DOCS_MENTION.lastIndex = 0;
+	while ((match = DOCS_MENTION.exec(text)) !== null) {
+		const topic = match[1] ?? '';
+		mentions.push({
+			kind: 'mention',
+			uri: topic ? `docs:${topic}` : 'docs:',
+			content: match[0],
+		});
+	}
+
+	WEB_MENTION.lastIndex = 0;
+	while ((match = WEB_MENTION.exec(text)) !== null) {
+		const query = match[1] ?? '';
+		mentions.push({
+			kind: 'mention',
+			uri: query ? `web:${query}` : 'web:',
+			content: match[0],
+		});
+	}
+
 	FILE_MENTION.lastIndex = 0;
 	while ((match = FILE_MENTION.exec(text)) !== null) {
 		const full = match[0];
-		if (full.startsWith('@symbol:')) {
+		if (full.startsWith('@symbol:') || full.startsWith('@docs') || full.startsWith('@web')) {
 			continue;
 		}
 		const target = match[1];
@@ -44,8 +66,10 @@ export function parseMentions(text: string): ParsedMentions {
 	}
 
 	let cleanText = text.replace(SYMBOL_MENTION, (_full, target: string) => `[mention:symbol:${target}]`);
+	cleanText = cleanText.replace(DOCS_MENTION, (_full, topic: string | undefined) => `[mention:docs:${topic ?? ''}]`);
+	cleanText = cleanText.replace(WEB_MENTION, (_full, query: string | undefined) => `[mention:web:${query ?? ''}]`);
 	cleanText = cleanText.replace(FILE_MENTION, (full, target: string) => {
-		if (full.startsWith('@symbol:')) {
+		if (full.startsWith('@symbol:') || full.startsWith('@docs') || full.startsWith('@web')) {
 			return full;
 		}
 		return `[mention:${target}]`;

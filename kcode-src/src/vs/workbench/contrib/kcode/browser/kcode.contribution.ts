@@ -18,6 +18,8 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { KcodeChatView } from './chat/kcodeChatView.js';
 import { KcodeAgentService, IKcodeAgentService } from './agent/kcodeAgentService.js';
 import { KcodeInlineCompletionContribution } from './completion/kcodeInlineCompletion.js';
+import { KcodeNextEditSuggestionContribution } from './completion/kcodeNextEditSuggestion.js';
+import './update/kcodeUpdateService.js';
 import { registerKcodeInlineEditActions } from './inlineEdit/kcodeInlineEdit.js';
 import { KcodeChatService } from './kcodeChatServiceImpl.js';
 import { KcodeSecretStorageService } from './kcodeSecretStorageServiceImpl.js';
@@ -30,6 +32,9 @@ import {
 	KCODE_CONFIG_PRIVACY_SEND_CODE,
 	KCODE_CONFIG_AGENT_MODE,
 	KCODE_CONFIG_TAB_COMPLETION,
+	KCODE_CONFIG_NEXT_EDIT_SUGGESTION,
+	KCODE_CONFIG_UPDATE_FEED_URL,
+	KCODE_CONFIG_UPDATE_CHECK,
 	KCODE_CONFIG_TELEMETRY,
 	KCODE_VIEW_CONTAINER_ID,
 } from '../common/kcodeConstants.js';
@@ -47,6 +52,12 @@ registerSingleton(IKcodeAgentService, KcodeAgentService, InstantiationType.Delay
 registerWorkbenchContribution2(
 	KcodeInlineCompletionContribution.ID,
 	KcodeInlineCompletionContribution,
+	WorkbenchPhase.Eventually,
+);
+
+registerWorkbenchContribution2(
+	KcodeNextEditSuggestionContribution.ID,
+	KcodeNextEditSuggestionContribution,
 	WorkbenchPhase.Eventually,
 );
 
@@ -126,7 +137,24 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 		[KCODE_CONFIG_TAB_COMPLETION]: {
 			type: 'boolean',
 			default: true,
-			description: localize('kcode.completion.enabled', 'Enable Kcode Tab inline completion (skeleton).'),
+			description: localize('kcode.completion.enabled', 'Enable Kcode Tab inline completion (LLM ghost text; requires kcode.privacy.sendCode).'),
+		},
+		[KCODE_CONFIG_NEXT_EDIT_SUGGESTION]: {
+			type: 'boolean',
+			default: false,
+			description: localize('kcode.nextEditSuggestion.enabled', 'Enable Next Edit Suggestion (skeleton — jump-to-edit wiring pending).'),
+		},
+		[KCODE_CONFIG_UPDATE_FEED_URL]: {
+			type: 'string',
+			default: 'https://kcode.dev/api/updates.json',
+			description: localize('kcode.update.feedUrl', 'Kcode update feed URL (JSON).'),
+			scope: ConfigurationScope.APPLICATION,
+		},
+		[KCODE_CONFIG_UPDATE_CHECK]: {
+			type: 'boolean',
+			default: true,
+			description: localize('kcode.update.checkOnStartup', 'Check for Kcode updates on startup (best-effort).'),
+			scope: ConfigurationScope.APPLICATION,
 		},
 		[KCODE_CONFIG_TELEMETRY]: {
 			type: 'boolean',

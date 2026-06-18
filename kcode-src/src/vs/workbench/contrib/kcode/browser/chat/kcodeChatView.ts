@@ -34,6 +34,8 @@ import { ChatMessage, ContextItem, IKcodeChatService } from '../../common/kcodeC
 import { KCODE_CONFIG_AGENT_MODE, KCODE_CONFIG_DEFAULT_MODEL } from '../../common/kcodeConstants.js';
 import { getActiveMentionFilter, insertMentionAtCursor, parseMentions } from '../../common/kcodeMentionParser.js';
 import { resolveMentions } from '../../common/kcodeMentionResolver.js';
+import { KCODE_DEFAULT_SYSTEM_PROMPT } from '../../common/kcodeSystemPrompt.js';
+import { loadWorkspaceRules } from '../../common/kcodeWorkspaceRules.js';
 import { KcodeMentionPicker } from './kcodeMentionPicker.js';
 import { KcodeModelPicker } from './kcodeModelPicker.js';
 
@@ -112,7 +114,7 @@ export class KcodeChatView extends ViewPane {
 		this.addToolbarButton(toolbar, localize('kcode.chat.agentMode', 'Agent mode'), () => this.toggleAgentMode());
 
 		this.inputElement = dom.append(this.inputArea, dom.$('textarea.kcode-chat-input')) as HTMLTextAreaElement;
-		this.inputElement.placeholder = localize('kcode.chat.inputPlaceholder', 'Ask Kcode… (@file, @symbol:name, Enter to send, Shift+Enter for newline)');
+		this.inputElement.placeholder = localize('kcode.chat.inputPlaceholder', 'Ask Kcode… (@file, @symbol:name, @docs, @web — Enter to send, Shift+Enter for newline)');
 		this.localDisposables.add(dom.addDisposableListener(this.inputElement, 'keydown', e => {
 			if (e.key === 'Enter' && !e.shiftKey) {
 				e.preventDefault();
@@ -178,7 +180,7 @@ export class KcodeChatView extends ViewPane {
 		const welcome = dom.append(this.messagesContainer, dom.$('.kcode-chat-welcome'));
 		welcome.textContent = localize(
 			'kcode.chat.welcome',
-			'Kcode AI 채팅입니다.\n상단에서 모델을 선택하고 메시지를 입력하세요.\n@filename · @symbol:name 멘션, 파일·선택·터미널·문제 첨부\nCtrl+K: 선택 영역 인라인 편집\nAgent mode: read_file / search / terminal (채팅에서 승인)\nAPI 키: 명령 팔레트 → "Kcode: Set OpenAI API Key" / "Set Anthropic API Key"\n로컬: Ollama (기본 http://127.0.0.1:11434)'
+			'Kcode AI 채팅입니다.\n상단에서 모델을 선택하고 메시지를 입력하세요.\n@filename · @symbol:name · @docs · @web 멘션, 파일·선택·터미널·문제 첨부\nCtrl+K: 선택 영역 인라인 편집 · Tab: LLM 고스트 자동완성 (kcode.privacy.sendCode 필요)\nAgent mode: read_file / search / terminal (채팅에서 승인)\n워크스페이스 룰: .kcode/rules/*.md\nAPI 키: 명령 팔레트 → "Kcode: Set OpenAI API Key" / "Set Anthropic API Key"\n로컬: Ollama (기본 http://127.0.0.1:11434)'
 		);
 	}
 
@@ -262,13 +264,30 @@ export class KcodeChatView extends ViewPane {
 
 	private promptToolApproval(call: AgentToolCall): Promise<boolean> {
 		return new Promise(resolve => {
-			this.pendingToolUi = { call, resolve: approved => {
-				this.pendingToolUi = undefined;
-				resolve(approved);
-				this.renderMessages();
-			} };
+			this.pendingToolUi = {
+				call,
+				resolve: approved => {
+					this.pendingToolUi = undefined;
+					resolve(approved);
+					this.renderMessages();
+				},
+			};
 			this.renderMessages();
 		});
+	}
+
+	private async buildSystemMessage(): Promise<ChatMessage> {
+		const rules = await loadWorkspaceRules(this.fileService, this.workspaceService);
+		const content = rules
+			? `${KCODE_DEFAULT_SYSTEM_PROMPT}\n\n${rules}`
+			: KCODE_DEFAULT_SYSTEM_PROMPT;
+		return { role: 'system', content };
+	}
+
+	private withSystemMessage(messages: ChatMessage[]): ChatMessage[] {
+		const withoutSystem = messages.filter(m => m.role !== 'system');
+		// system message is prepended async in callers via buildSystemMessage
+		return withoutSystem;
 	}
 
 	private attachActiveFile(): void {
@@ -405,10 +424,13 @@ export class KcodeChatView extends ViewPane {
 			{ role: 'user', content: promptText },
 		];
 
+		const systemMessage = await this.buildSystemMessage();
+		const messagesWithSystem = [systemMessage, ...this.withSystemMessage(conversationMessages)];
+
 		if (this.agentModeEnabled) {
-			await this.runAgentLoop(conversationMessages, model);
+			await this.runAgentLoop(messagesWithSystem, model);
 		} else {
-			await this.runSingleTurn(conversationMessages, model);
+			await this.runSingleTurn(messagesWithSystem, model);
 		}
 	}
 
@@ -417,15 +439,19 @@ export class KcodeChatView extends ViewPane {
 		let assistantText = '';
 		this.history.push({ role: 'assistant', content: '' });
 
-		for await (const delta of this.chatService.sendMessage({ messages, model }, cts.token)) {
-			if (delta.content) {
-				assistantText += delta.content;
-				this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
-				this.renderMessages(assistantText);
+		try {
+			for await (const delta of this.chatService.sendMessage({ messages, model }, cts.token)) {
+				if (delta.content) {
+					assistantText += delta.content;
+					this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
+					this.renderMessages(assistantText);
+				}
+				if (delta.done) {
+					break;
+				}
 			}
-			if (delta.done) {
-				break;
-			}
+		} catch (err) {
+			assistantText = localize('kcode.chat.streamError', 'Chat error: {0}', String(err));
 		}
 
 		this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
@@ -441,22 +467,31 @@ export class KcodeChatView extends ViewPane {
 			let toolCalls: AgentToolCall[] = [];
 			this.history.push({ role: 'assistant', content: '' });
 
-			for await (const delta of this.chatService.sendMessage({
-				messages,
-				model,
-				tools: KCODE_AGENT_TOOLS,
-			}, cts.token)) {
-				if (delta.content) {
-					assistantText += delta.content;
-					this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
-					this.renderMessages(assistantText);
+			try {
+				for await (const delta of this.chatService.sendMessage({
+					messages,
+					model,
+					tools: KCODE_AGENT_TOOLS,
+				}, cts.token)) {
+					if (delta.content) {
+						assistantText += delta.content;
+						this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
+						this.renderMessages(assistantText);
+					}
+					if (delta.toolCalls && delta.toolCalls.length > 0) {
+						toolCalls = [...delta.toolCalls];
+					}
+					if (delta.done) {
+						break;
+					}
 				}
-				if (delta.toolCalls && delta.toolCalls.length > 0) {
-					toolCalls = [...delta.toolCalls];
-				}
-				if (delta.done) {
-					break;
-				}
+			} catch (err) {
+				this.history[this.history.length - 1] = {
+					role: 'assistant',
+					content: localize('kcode.agent.streamError', 'Agent error: {0}', String(err)),
+				};
+				this.renderMessages();
+				return;
 			}
 
 			if (toolCalls.length === 0) {
@@ -473,8 +508,17 @@ export class KcodeChatView extends ViewPane {
 			this.history[this.history.length - 1] = assistantWithTools;
 			messages = [...messages, assistantWithTools];
 
+			let rejectedBatch = false;
 			for (const call of toolCalls) {
-				const approved = await this.promptToolApproval(call);
+				let approved: boolean;
+				if (rejectedBatch) {
+					approved = false;
+				} else {
+					approved = await this.promptToolApproval(call);
+					if (!approved) {
+						rejectedBatch = true;
+					}
+				}
 				const result = await this.agentService.executeTool(call, approved);
 				const toolMessage: ChatMessage = {
 					role: 'tool',

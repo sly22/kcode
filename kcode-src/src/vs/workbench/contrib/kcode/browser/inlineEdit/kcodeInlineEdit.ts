@@ -15,6 +15,7 @@ import { IEditorService } from '../../../../services/editor/common/editorService
 import { IKcodeChatService } from '../../common/kcodeChatService.js';
 import { stripMarkdownCodeFences } from '../../common/kcodeCodeUtils.js';
 import { KCODE_CONFIG_DEFAULT_MODEL } from '../../common/kcodeConstants.js';
+import { KCODE_DEFAULT_SYSTEM_PROMPT } from '../../common/kcodeSystemPrompt.js';
 
 export function registerKcodeInlineEditActions(): void {
 	registerAction2(class KcodeInlineEditAction extends Action2 {
@@ -71,7 +72,7 @@ export function registerKcodeInlineEditActions(): void {
 				messages: [
 					{
 						role: 'system',
-						content: 'You are a code editing assistant. Return only the transformed code without markdown fences or explanation.',
+						content: `${KCODE_DEFAULT_SYSTEM_PROMPT}\n\n선택된 코드만 변환한 결과를 반환하세요. 마크다운 펜스나 설명 없이 코드만 출력합니다.`,
 					},
 					{
 						role: 'user',

@@ -46,6 +46,26 @@ export async function resolveMentions(
 			continue;
 		}
 
+		if (mention.uri.startsWith('docs:')) {
+			const topic = mention.uri.slice('docs:'.length);
+			resolved.push({
+				kind: 'mention',
+				uri: mention.uri,
+				content: resolveDocsMention(topic),
+			});
+			continue;
+		}
+
+		if (mention.uri.startsWith('web:')) {
+			const query = mention.uri.slice('web:'.length);
+			resolved.push({
+				kind: 'mention',
+				uri: mention.uri,
+				content: resolveWebMention(query),
+			});
+			continue;
+		}
+
 		const file = await resolveMentionTarget(mention.uri, fileService, workspaceService);
 		if (file) {
 			resolved.push({
@@ -157,4 +177,25 @@ async function findByBasename(
 	}
 
 	return undefined;
+}
+
+/** Stub: @docs mention — links to Kcode documentation (web fetch not implemented). */
+function resolveDocsMention(topic: string): string {
+	const base = 'https://kcode.dev/docs';
+	const path = topic ? `/${topic.replace(/^\//, '')}` : '';
+	return [
+		'[Kcode Docs — stub]',
+		`Topic: ${topic || '(general)'}`,
+		`URL: ${base}${path}`,
+		'Full documentation indexing is not yet implemented. Use @file or attach context for now.',
+	].join('\n');
+}
+
+/** Stub: @web mention — web search placeholder. */
+function resolveWebMention(query: string): string {
+	return [
+		'[Web search — stub]',
+		`Query: ${query || '(no query)'}`,
+		'Live web search is not yet implemented. Paste URLs or attach files for external context.',
+	].join('\n');
 }

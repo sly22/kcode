@@ -65,9 +65,7 @@ export class AnthropicProvider implements IKcodeModelProvider {
 			model,
 			max_tokens: 4096,
 			stream: true,
-			messages: request.messages
-				.filter(m => m.role !== 'system' && m.role !== 'tool')
-				.map(m => this.toAnthropicMessage(m)),
+			messages: this.buildAnthropicMessages(request.messages),
 			system: request.messages.find(m => m.role === 'system')?.content,
 		};
 		if (request.tools && request.tools.length > 0) {
@@ -128,6 +126,35 @@ export class AnthropicProvider implements IKcodeModelProvider {
 				done: true,
 			};
 		}
+	}
+
+	private buildAnthropicMessages(messages: readonly ChatMessage[]): Record<string, unknown>[] {
+		const result: Record<string, unknown>[] = [];
+		let i = 0;
+		while (i < messages.length) {
+			const message = messages[i];
+			if (message.role === 'system') {
+				i++;
+				continue;
+			}
+			if (message.role === 'tool') {
+				const toolResults: object[] = [];
+				while (i < messages.length && messages[i].role === 'tool') {
+					const toolMessage = messages[i];
+					toolResults.push({
+						type: 'tool_result',
+						tool_use_id: toolMessage.toolCallId ?? 'unknown',
+						content: toolMessage.content,
+					});
+					i++;
+				}
+				result.push({ role: 'user', content: toolResults });
+				continue;
+			}
+			result.push(this.toAnthropicMessage(message));
+			i++;
+		}
+		return result;
 	}
 
 	private toAnthropicMessage(message: ChatMessage): Record<string, unknown> {

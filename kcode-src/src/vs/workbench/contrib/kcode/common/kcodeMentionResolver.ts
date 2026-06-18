@@ -5,22 +5,44 @@
 import { URI } from '../../../../base/common/uri.js';
 import { IFileService } from '../../../../platform/files/common/files.js';
 import { IWorkspaceContextService } from '../../../../platform/workspace/common/workspace.js';
+import { IEditorService } from '../../../services/editor/common/editorService.js';
 import { ContextItem } from './kcodeChatService.js';
+import { resolveSymbolMention } from './kcodeSymbolMentions.js';
 
 /**
  * Resolves @-mention targets to workspace file content.
  * Tries relative paths from each workspace folder, then basename-only fallbacks.
  */
+export async function resolveWorkspaceFile(
+	target: string,
+	fileService: IFileService,
+	workspaceService: IWorkspaceContextService,
+): Promise<{ uri: string; content: string } | undefined> {
+	return resolveMentionTarget(target, fileService, workspaceService);
+}
+
 export async function resolveMentions(
 	mentions: readonly ContextItem[],
 	fileService: IFileService,
 	workspaceService: IWorkspaceContextService,
+	editorService?: IEditorService,
 ): Promise<ContextItem[]> {
 	const resolved: ContextItem[] = [];
 
 	for (const mention of mentions) {
 		if (mention.kind !== 'mention' || !mention.uri) {
 			resolved.push(mention);
+			continue;
+		}
+
+		if (mention.uri.startsWith('symbol:') && editorService) {
+			const symbolName = mention.uri.slice('symbol:'.length);
+			const content = await resolveSymbolMention(symbolName, editorService, fileService, workspaceService);
+			resolved.push({
+				kind: 'mention',
+				uri: mention.uri,
+				content: content ?? `[Could not resolve @symbol:${symbolName}]`,
+			});
 			continue;
 		}
 

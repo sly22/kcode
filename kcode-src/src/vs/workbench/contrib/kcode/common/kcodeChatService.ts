@@ -4,16 +4,20 @@
 
 import { CancellationToken } from '../../../../base/common/cancellation.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { AgentToolCall } from './kcodeAgentTools.js';
 import { ModelInfo } from './kcodeModels.js';
 
 export interface ChatMessage {
-	readonly role: 'user' | 'assistant' | 'system';
+	readonly role: 'user' | 'assistant' | 'system' | 'tool';
 	readonly content: string;
+	readonly toolCallId?: string;
+	readonly toolCalls?: readonly AgentToolCall[];
 }
 
 export interface ChatDelta {
 	readonly content?: string;
 	readonly done?: boolean;
+	readonly toolCalls?: readonly AgentToolCall[];
 }
 
 export interface ToolSpec {

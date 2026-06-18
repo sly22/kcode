@@ -22,6 +22,7 @@ export const KCODE_AGENT_TOOLS: readonly ToolSpec[] = [
 export type KcodeAgentToolName = 'read_file' | 'search' | 'terminal';
 
 export interface AgentToolCall {
+	readonly id?: string;
 	readonly name: KcodeAgentToolName;
 	readonly args: Record<string, string>;
 }

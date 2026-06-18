@@ -27,24 +27,37 @@ import { IViewDescriptorService } from '../../../../common/views.js';
 import { IHoverService } from '../../../../../platform/hover/browser/hover.js';
 import { IEditorService } from '../../../../services/editor/common/editorService.js';
 import { ITerminalService } from '../../../terminal/browser/terminal.js';
+import { IKcodeAgentService } from '../agent/kcodeAgentService.js';
+import { AgentToolCall } from '../../common/kcodeAgentTools.js';
 import { KCODE_AGENT_TOOLS } from '../../common/kcodeAgentTools.js';
 import { ChatMessage, ContextItem, IKcodeChatService } from '../../common/kcodeChatService.js';
 import { KCODE_CONFIG_AGENT_MODE, KCODE_CONFIG_DEFAULT_MODEL } from '../../common/kcodeConstants.js';
-import { parseMentions } from '../../common/kcodeMentionParser.js';
+import { getActiveMentionFilter, insertMentionAtCursor, parseMentions } from '../../common/kcodeMentionParser.js';
 import { resolveMentions } from '../../common/kcodeMentionResolver.js';
+import { KcodeMentionPicker } from './kcodeMentionPicker.js';
 import { KcodeModelPicker } from './kcodeModelPicker.js';
+
+const MAX_AGENT_TURNS = 8;
+
+interface ToolCallUiState {
+	readonly call: AgentToolCall;
+	readonly resolve: (approved: boolean) => void;
+}
 
 export class KcodeChatView extends ViewPane {
 
 	private readonly localDisposables = this._register(new DisposableStore());
 	private messagesContainer: HTMLElement | undefined;
 	private inputElement: HTMLTextAreaElement | undefined;
+	private inputArea: HTMLElement | undefined;
 	private attachmentsContainer: HTMLElement | undefined;
 	private agentBanner: HTMLElement | undefined;
 	private modelPicker: KcodeModelPicker | undefined;
+	private mentionPicker: KcodeMentionPicker | undefined;
 	private readonly history: ChatMessage[] = [];
 	private readonly attachments: ContextItem[] = [];
 	private agentModeEnabled = false;
+	private pendingToolUi: ToolCallUiState | undefined;
 
 	constructor(
 		options: IViewPaneOptions,
@@ -58,6 +71,7 @@ export class KcodeChatView extends ViewPane {
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
 		@IKcodeChatService private readonly chatService: IKcodeChatService,
+		@IKcodeAgentService private readonly agentService: IKcodeAgentService,
 		@IEditorService private readonly editorService: IEditorService,
 		@IFileService private readonly fileService: IFileService,
 		@IWorkspaceContextService private readonly workspaceService: IWorkspaceContextService,
@@ -75,34 +89,46 @@ export class KcodeChatView extends ViewPane {
 		const header = dom.append(root, dom.$('.kcode-chat-header'));
 		this.messagesContainer = dom.append(root, dom.$('.kcode-chat-messages'));
 		this.agentBanner = dom.append(root, dom.$('.kcode-chat-agent-banner'));
-		const inputArea = dom.append(root, dom.$('.kcode-chat-input-area'));
-		this.attachmentsContainer = dom.append(inputArea, dom.$('.kcode-chat-attachments'));
+		this.inputArea = dom.append(root, dom.$('.kcode-chat-input-area'));
+		this.attachmentsContainer = dom.append(this.inputArea, dom.$('.kcode-chat-attachments'));
 
 		this.modelPicker = this.localDisposables.add(
 			this.instantiationService.createInstance(KcodeModelPicker, header)
 		);
 		void this.modelPicker.render();
 
+		this.mentionPicker = this.localDisposables.add(
+			this.instantiationService.createInstance(KcodeMentionPicker, this.inputArea)
+		);
+
 		this.renderWelcome();
 		this.renderAgentBanner();
 
-		const toolbar = dom.append(inputArea, dom.$('.kcode-chat-toolbar'));
+		const toolbar = dom.append(this.inputArea, dom.$('.kcode-chat-toolbar'));
 		this.addToolbarButton(toolbar, localize('kcode.chat.attachFile', 'Attach file'), () => this.attachActiveFile());
 		this.addToolbarButton(toolbar, localize('kcode.chat.attachSelection', 'Attach selection'), () => this.attachSelection());
 		this.addToolbarButton(toolbar, localize('kcode.chat.attachTerminal', 'Attach terminal'), () => this.attachTerminal());
 		this.addToolbarButton(toolbar, localize('kcode.chat.attachProblems', 'Attach problems'), () => this.attachProblems());
 		this.addToolbarButton(toolbar, localize('kcode.chat.agentMode', 'Agent mode'), () => this.toggleAgentMode());
 
-		this.inputElement = dom.append(inputArea, dom.$('textarea.kcode-chat-input')) as HTMLTextAreaElement;
-		this.inputElement.placeholder = localize('kcode.chat.inputPlaceholder', 'Ask Kcode… (@file, Enter to send, Shift+Enter for newline)');
+		this.inputElement = dom.append(this.inputArea, dom.$('textarea.kcode-chat-input')) as HTMLTextAreaElement;
+		this.inputElement.placeholder = localize('kcode.chat.inputPlaceholder', 'Ask Kcode… (@file, @symbol:name, Enter to send, Shift+Enter for newline)');
 		this.localDisposables.add(dom.addDisposableListener(this.inputElement, 'keydown', e => {
 			if (e.key === 'Enter' && !e.shiftKey) {
 				e.preventDefault();
+				this.mentionPicker?.hide();
 				this.sendMessage();
 			}
+			if (e.key === 'Escape') {
+				this.mentionPicker?.hide();
+			}
+		}));
+		this.localDisposables.add(dom.addDisposableListener(this.inputElement, 'input', () => this.onInputChanged()));
+		this.localDisposables.add(dom.addDisposableListener(this.inputElement, 'blur', () => {
+			setTimeout(() => this.mentionPicker?.hide(), 150);
 		}));
 
-		const sendButton = this.localDisposables.add(new Button(inputArea, defaultButtonStyles));
+		const sendButton = this.localDisposables.add(new Button(this.inputArea, defaultButtonStyles));
 		sendButton.label = localize('kcode.chat.send', 'Send');
 		this.localDisposables.add(sendButton.onDidClick(() => this.sendMessage()));
 		sendButton.element.classList.add('kcode-chat-send');
@@ -110,6 +136,31 @@ export class KcodeChatView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+	}
+
+	private onInputChanged(): void {
+		if (!this.inputElement || !this.mentionPicker) {
+			return;
+		}
+		const filter = getActiveMentionFilter(this.inputElement.value, this.inputElement.selectionStart);
+		if (filter === undefined) {
+			this.mentionPicker.hide();
+			return;
+		}
+		this.mentionPicker.show(filter, item => {
+			if (!this.inputElement) {
+				return;
+			}
+			const { text, cursor } = insertMentionAtCursor(
+				this.inputElement.value,
+				this.inputElement.selectionStart,
+				item.insertText,
+			);
+			this.inputElement.value = text;
+			this.inputElement.selectionStart = cursor;
+			this.inputElement.selectionEnd = cursor;
+			this.inputElement.focus();
+		});
 	}
 
 	private addToolbarButton(parent: HTMLElement, label: string, handler: () => void): void {
@@ -127,7 +178,7 @@ export class KcodeChatView extends ViewPane {
 		const welcome = dom.append(this.messagesContainer, dom.$('.kcode-chat-welcome'));
 		welcome.textContent = localize(
 			'kcode.chat.welcome',
-			'Kcode AI 채팅입니다.\n상단에서 모델을 선택하고 메시지를 입력하세요.\n파일·선택·터미널·문제를 첨부하거나 @filename 으로 멘션할 수 있습니다.\nCtrl+K: 선택 영역 인라인 편집 (적용 확인 후 반영)\nAgent mode: read_file / search / terminal 도구 (승인 필요)\nAPI 키: 명령 팔레트 → "Kcode: Set OpenAI API Key" / "Set Anthropic API Key"\n로컬: Ollama (기본 http://127.0.0.1:11434)'
+			'Kcode AI 채팅입니다.\n상단에서 모델을 선택하고 메시지를 입력하세요.\n@filename · @symbol:name 멘션, 파일·선택·터미널·문제 첨부\nCtrl+K: 선택 영역 인라인 편집\nAgent mode: read_file / search / terminal (채팅에서 승인)\nAPI 키: 명령 팔레트 → "Kcode: Set OpenAI API Key" / "Set Anthropic API Key"\n로컬: Ollama (기본 http://127.0.0.1:11434)'
 		);
 	}
 
@@ -143,7 +194,7 @@ export class KcodeChatView extends ViewPane {
 		this.agentBanner.style.display = 'block';
 		this.agentBanner.textContent = localize(
 			'kcode.chat.agentBanner',
-			'Agent mode — tools (read_file, search, terminal) require approval before execution.',
+			'Agent mode — tool calls appear in chat with Approve / Reject buttons.',
 		);
 	}
 
@@ -170,6 +221,11 @@ export class KcodeChatView extends ViewPane {
 		}
 		dom.clearNode(this.messagesContainer);
 		for (const message of this.history) {
+			if (message.role === 'tool') {
+				const el = dom.append(this.messagesContainer, dom.$('.kcode-chat-message.tool'));
+				el.textContent = localize('kcode.chat.toolResult', '[Tool result]\n{0}', message.content);
+				continue;
+			}
 			const el = dom.append(this.messagesContainer, dom.$(`.kcode-chat-message.${message.role}`));
 			el.textContent = message.content;
 		}
@@ -177,6 +233,42 @@ export class KcodeChatView extends ViewPane {
 			const el = dom.append(this.messagesContainer, dom.$('.kcode-chat-message.assistant.streaming'));
 			el.textContent = streamingAssistant;
 		}
+		if (this.pendingToolUi) {
+			this.renderToolApprovalCard(this.pendingToolUi);
+		}
+		this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+	}
+
+	private renderToolApprovalCard(state: ToolCallUiState): void {
+		if (!this.messagesContainer) {
+			return;
+		}
+		const card = dom.append(this.messagesContainer, dom.$('.kcode-chat-tool-call'));
+		const title = dom.append(card, dom.$('.kcode-chat-tool-call-title'));
+		title.textContent = localize('kcode.chat.toolCall', 'Agent tool call: {0}', state.call.name);
+
+		const args = dom.append(card, dom.$('.kcode-chat-tool-call-args'));
+		args.textContent = JSON.stringify(state.call.args, null, 2);
+
+		const actions = dom.append(card, dom.$('.kcode-chat-tool-call-actions'));
+		const approve = dom.append(actions, dom.$('button.kcode-chat-tool-approve')) as HTMLButtonElement;
+		approve.textContent = localize('kcode.agent.approve', 'Approve');
+		const reject = dom.append(actions, dom.$('button.kcode-chat-tool-reject')) as HTMLButtonElement;
+		reject.textContent = localize('kcode.agent.deny', 'Deny');
+
+		approve.onclick = () => state.resolve(true);
+		reject.onclick = () => state.resolve(false);
+	}
+
+	private promptToolApproval(call: AgentToolCall): Promise<boolean> {
+		return new Promise(resolve => {
+			this.pendingToolUi = { call, resolve: approved => {
+				this.pendingToolUi = undefined;
+				resolve(approved);
+				this.renderMessages();
+			} };
+			this.renderMessages();
+		});
 	}
 
 	private attachActiveFile(): void {
@@ -294,7 +386,7 @@ export class KcodeChatView extends ViewPane {
 		}
 
 		const { cleanText, mentions } = parseMentions(rawText);
-		const resolvedMentions = await resolveMentions(mentions, this.fileService, this.workspaceService);
+		const resolvedMentions = await resolveMentions(mentions, this.fileService, this.workspaceService, this.editorService);
 		const contextItems = [...this.attachments, ...resolvedMentions];
 		const promptText = this.buildContextPrompt(cleanText, contextItems);
 
@@ -308,19 +400,24 @@ export class KcodeChatView extends ViewPane {
 			|| this.configurationService.getValue<string>(KCODE_CONFIG_DEFAULT_MODEL)
 			|| '';
 
+		const conversationMessages: ChatMessage[] = [
+			...this.history.slice(0, -1),
+			{ role: 'user', content: promptText },
+		];
+
+		if (this.agentModeEnabled) {
+			await this.runAgentLoop(conversationMessages, model);
+		} else {
+			await this.runSingleTurn(conversationMessages, model);
+		}
+	}
+
+	private async runSingleTurn(messages: ChatMessage[], model: string): Promise<void> {
 		const cts = new CancellationTokenSource();
 		let assistantText = '';
 		this.history.push({ role: 'assistant', content: '' });
 
-		for await (const delta of this.chatService.sendMessage({
-			messages: [
-				...this.history.slice(0, -1),
-				{ role: 'user', content: promptText },
-			],
-			model,
-			context: contextItems,
-			tools: this.agentModeEnabled ? KCODE_AGENT_TOOLS : undefined,
-		}, cts.token)) {
+		for await (const delta of this.chatService.sendMessage({ messages, model }, cts.token)) {
 			if (delta.content) {
 				assistantText += delta.content;
 				this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
@@ -332,6 +429,68 @@ export class KcodeChatView extends ViewPane {
 		}
 
 		this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
+		this.renderMessages();
+	}
+
+	private async runAgentLoop(initialMessages: ChatMessage[], model: string): Promise<void> {
+		const cts = new CancellationTokenSource();
+		let messages = [...initialMessages];
+
+		for (let turn = 0; turn < MAX_AGENT_TURNS; turn++) {
+			let assistantText = '';
+			let toolCalls: AgentToolCall[] = [];
+			this.history.push({ role: 'assistant', content: '' });
+
+			for await (const delta of this.chatService.sendMessage({
+				messages,
+				model,
+				tools: KCODE_AGENT_TOOLS,
+			}, cts.token)) {
+				if (delta.content) {
+					assistantText += delta.content;
+					this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
+					this.renderMessages(assistantText);
+				}
+				if (delta.toolCalls && delta.toolCalls.length > 0) {
+					toolCalls = [...delta.toolCalls];
+				}
+				if (delta.done) {
+					break;
+				}
+			}
+
+			if (toolCalls.length === 0) {
+				this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
+				this.renderMessages();
+				return;
+			}
+
+			const assistantWithTools: ChatMessage = {
+				role: 'assistant',
+				content: assistantText,
+				toolCalls,
+			};
+			this.history[this.history.length - 1] = assistantWithTools;
+			messages = [...messages, assistantWithTools];
+
+			for (const call of toolCalls) {
+				const approved = await this.promptToolApproval(call);
+				const result = await this.agentService.executeTool(call, approved);
+				const toolMessage: ChatMessage = {
+					role: 'tool',
+					content: result.output,
+					toolCallId: call.id ?? `call_${call.name}`,
+				};
+				this.history.push(toolMessage);
+				messages = [...messages, toolMessage];
+				this.renderMessages();
+			}
+		}
+
+		this.history.push({
+			role: 'assistant',
+			content: localize('kcode.agent.maxTurns', 'Agent stopped after maximum tool turns.'),
+		});
 		this.renderMessages();
 	}
 }

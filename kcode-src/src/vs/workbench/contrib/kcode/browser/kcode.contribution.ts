@@ -17,6 +17,7 @@ import { IViewContainersRegistry, IViewsRegistry, ViewContainerLocation, Extensi
 import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { KcodeChatView } from './chat/kcodeChatView.js';
 import { KcodeAgentService, IKcodeAgentService } from './agent/kcodeAgentService.js';
+import { KcodeInlineCompletionContribution } from './completion/kcodeInlineCompletion.js';
 import { registerKcodeInlineEditActions } from './inlineEdit/kcodeInlineEdit.js';
 import { KcodeChatService } from './kcodeChatServiceImpl.js';
 import { KcodeSecretStorageService } from './kcodeSecretStorageServiceImpl.js';
@@ -28,16 +29,26 @@ import {
 	KCODE_CONFIG_OLLAMA_BASE_URL,
 	KCODE_CONFIG_PRIVACY_SEND_CODE,
 	KCODE_CONFIG_AGENT_MODE,
+	KCODE_CONFIG_TAB_COMPLETION,
+	KCODE_CONFIG_TELEMETRY,
 	KCODE_VIEW_CONTAINER_ID,
 } from '../common/kcodeConstants.js';
 import { IKcodeChatService } from '../common/kcodeChatService.js';
 import { IKcodeSecretStorageService } from '../common/kcodeSecretStorageService.js';
 import { KcodeProvider } from '../common/kcodeModels.js';
+
 import { IQuickInputService } from '../../../../platform/quickinput/common/quickInput.js';
+import { registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 
 registerSingleton(IKcodeChatService, KcodeChatService, InstantiationType.Delayed);
 registerSingleton(IKcodeSecretStorageService, KcodeSecretStorageService, InstantiationType.Delayed);
 registerSingleton(IKcodeAgentService, KcodeAgentService, InstantiationType.Delayed);
+
+registerWorkbenchContribution2(
+	KcodeInlineCompletionContribution.ID,
+	KcodeInlineCompletionContribution,
+	WorkbenchPhase.Eventually,
+);
 
 const kcodeViewIcon = registerIcon('kcode-view-icon', Codicon.sparkle, localize('kcodeViewIcon', 'View icon of the Kcode chat view.'));
 
@@ -110,6 +121,17 @@ Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).regis
 			type: 'boolean',
 			default: false,
 			description: localize('kcode.agent.enabled', 'Enable Kcode agent mode (tool calls with user approval).'),
+			scope: ConfigurationScope.APPLICATION,
+		},
+		[KCODE_CONFIG_TAB_COMPLETION]: {
+			type: 'boolean',
+			default: true,
+			description: localize('kcode.completion.enabled', 'Enable Kcode Tab inline completion (skeleton).'),
+		},
+		[KCODE_CONFIG_TELEMETRY]: {
+			type: 'boolean',
+			default: false,
+			description: localize('kcode.telemetry.enabled', 'Allow Kcode telemetry (default off).'),
 			scope: ConfigurationScope.APPLICATION,
 		},
 	},

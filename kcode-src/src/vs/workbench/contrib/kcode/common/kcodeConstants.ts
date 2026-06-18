@@ -13,3 +13,5 @@ export const KCODE_CONFIG_ANTHROPIC_BASE_URL = 'kcode.providers.anthropic.baseUr
 export const KCODE_CONFIG_OLLAMA_BASE_URL = 'kcode.providers.ollama.baseUrl';
 export const KCODE_CONFIG_PRIVACY_SEND_CODE = 'kcode.privacy.sendCode';
 export const KCODE_CONFIG_AGENT_MODE = 'kcode.agent.enabled';
+export const KCODE_CONFIG_TAB_COMPLETION = 'kcode.completion.enabled';
+export const KCODE_CONFIG_TELEMETRY = 'kcode.telemetry.enabled';

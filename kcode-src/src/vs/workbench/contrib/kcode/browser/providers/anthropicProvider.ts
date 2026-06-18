@@ -6,7 +6,9 @@ import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { localize } from '../../../../../nls.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { IRequestService } from '../../../../../platform/request/common/request.js';
-import { ChatDelta, ChatRequest } from '../../common/kcodeChatService.js';
+import { AgentToolCall } from '../../common/kcodeAgentTools.js';
+import { toAnthropicTools } from '../../common/kcodeAgentToolSchemas.js';
+import { ChatDelta, ChatMessage, ChatRequest } from '../../common/kcodeChatService.js';
 import { KCODE_CONFIG_ANTHROPIC_BASE_URL } from '../../common/kcodeConstants.js';
 import { KcodeProvider, ModelInfo, qualifiedModelId } from '../../common/kcodeModels.js';
 import { IKcodeSecretStorageService } from '../../common/kcodeSecretStorageService.js';
@@ -21,7 +23,9 @@ const ANTHROPIC_MODELS: ReadonlyArray<{ id: string; label: string }> = [
 
 interface AnthropicStreamEvent {
 	type?: string;
-	delta?: { type?: string; text?: string };
+	delta?: { type?: string; text?: string; partial_json?: string };
+	content_block?: { type?: string; id?: string; name?: string };
+	index?: number;
 	error?: { message?: string };
 }
 
@@ -57,6 +61,22 @@ export class AnthropicProvider implements IKcodeModelProvider {
 
 		const baseUrl = this.getBaseUrl();
 		const model = stripProviderPrefix(request.model);
+		const body: Record<string, unknown> = {
+			model,
+			max_tokens: 4096,
+			stream: true,
+			messages: request.messages
+				.filter(m => m.role !== 'system' && m.role !== 'tool')
+				.map(m => this.toAnthropicMessage(m)),
+			system: request.messages.find(m => m.role === 'system')?.content,
+		};
+		if (request.tools && request.tools.length > 0) {
+			body.tools = toAnthropicTools(request.tools);
+		}
+
+		let currentToolId: string | undefined;
+		let currentToolName: string | undefined;
+		let toolInputJson = '';
 
 		try {
 			for await (const data of fetchSseData(this.requestService, {
@@ -66,15 +86,7 @@ export class AnthropicProvider implements IKcodeModelProvider {
 					'x-api-key': apiKey,
 					'anthropic-version': '2023-06-01',
 				},
-				body: {
-					model,
-					max_tokens: 4096,
-					stream: true,
-					messages: request.messages
-						.filter(m => m.role !== 'system')
-						.map(m => ({ role: m.role, content: m.content })),
-					system: request.messages.find(m => m.role === 'system')?.content,
-				},
+				body,
 				callSite: 'AnthropicProvider.sendMessage',
 			}, token)) {
 				const event = JSON.parse(data) as AnthropicStreamEvent;
@@ -82,10 +94,29 @@ export class AnthropicProvider implements IKcodeModelProvider {
 					yield { content: event.error.message, done: true };
 					return;
 				}
-				if (event.type === 'content_block_delta' && event.delta?.text) {
+
+				if (event.type === 'content_block_start' && event.content_block?.type === 'tool_use') {
+					currentToolId = event.content_block.id;
+					currentToolName = event.content_block.name;
+					toolInputJson = '';
+				}
+
+				if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta' && event.delta.text) {
 					yield { content: event.delta.text };
 				}
+
+				if (event.type === 'content_block_delta' && event.delta?.type === 'input_json_delta' && event.delta.partial_json) {
+					toolInputJson += event.delta.partial_json;
+				}
+
 				if (event.type === 'message_stop') {
+					if (currentToolName) {
+						const toolCalls = this.parseAnthropicToolCall(currentToolId, currentToolName, toolInputJson);
+						if (toolCalls.length > 0) {
+							yield { toolCalls, done: true };
+							return;
+						}
+					}
 					yield { done: true };
 					return;
 				}
@@ -97,6 +128,42 @@ export class AnthropicProvider implements IKcodeModelProvider {
 				done: true,
 			};
 		}
+	}
+
+	private toAnthropicMessage(message: ChatMessage): Record<string, unknown> {
+		if (message.role === 'assistant' && message.toolCalls && message.toolCalls.length > 0) {
+			const content: object[] = [];
+			if (message.content) {
+				content.push({ type: 'text', text: message.content });
+			}
+			for (const tc of message.toolCalls) {
+				content.push({
+					type: 'tool_use',
+					id: tc.id ?? `tool_${tc.name}`,
+					name: tc.name,
+					input: tc.args,
+				});
+			}
+			return { role: 'assistant', content };
+		}
+		return { role: message.role, content: message.content };
+	}
+
+	private parseAnthropicToolCall(id: string | undefined, name: string, inputJson: string): AgentToolCall[] {
+		let args: Record<string, string> = {};
+		try {
+			const parsed = JSON.parse(inputJson || '{}') as Record<string, unknown>;
+			for (const [key, value] of Object.entries(parsed)) {
+				args[key] = String(value);
+			}
+		} catch {
+			args = {};
+		}
+		return [{
+			id: id ?? `tool_${name}`,
+			name: name as AgentToolCall['name'],
+			args,
+		}];
 	}
 
 	private getBaseUrl(): string {

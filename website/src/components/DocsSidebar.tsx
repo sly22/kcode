@@ -12,15 +12,9 @@ export function DocsSidebar() {
   return (
     <aside className="hidden lg:block">
       <nav className="sticky top-24 space-y-1">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">
-          시작하기
-        </p>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">시작하기</p>
         {sections.map((section) => (
-          <Link
-            key={section.id}
-            href={`/docs#${section.id}`}
-            className="block rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-surface-elevated hover:text-foreground"
-          >
+          <Link key={section.id} href={`/docs#${section.id}`} className="block rounded-lg px-3 py-2 text-sm text-muted transition-colors hover:bg-surface-elevated hover:text-foreground">
             {section.label}
           </Link>
         ))}

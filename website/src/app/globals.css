@@ -27,13 +27,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--background);
@@ -75,7 +70,6 @@ body {
   font-weight: 600;
   margin-top: 2.5rem;
   margin-bottom: 1rem;
-  color: var(--foreground);
 }
 
 .prose-kcode h3 {
@@ -83,7 +77,6 @@ body {
   font-weight: 600;
   margin-top: 1.75rem;
   margin-bottom: 0.75rem;
-  color: var(--foreground);
 }
 
 .prose-kcode p {
@@ -92,17 +85,14 @@ body {
   color: var(--muted);
 }
 
-.prose-kcode ul,
-.prose-kcode ol {
+.prose-kcode ul, .prose-kcode ol {
   margin-bottom: 1rem;
   padding-left: 1.5rem;
   color: var(--muted);
   line-height: 1.75;
 }
 
-.prose-kcode li {
-  margin-bottom: 0.35rem;
-}
+.prose-kcode li { margin-bottom: 0.35rem; }
 
 .prose-kcode code {
   font-family: var(--font-mono), monospace;
@@ -138,6 +128,4 @@ body {
   text-underline-offset: 2px;
 }
 
-.prose-kcode a:hover {
-  color: var(--accent-purple);
-}
+.prose-kcode a:hover { color: var(--accent-purple); }

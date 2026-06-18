@@ -14,7 +14,7 @@ alwaysApply: true
 - [x] Node.js 버전 확인 (`vscode-main/.nvmrc`), `npm ci` — 스크립트·문서 준비됨, 로컬 빌드는 사용자 환경에서 검증 필요
 - [~] Python, Visual Studio Build Tools, electron-rebuild 사전 요구사항 설치 — README 빌드 문제 해결 섹션 문서화, 사용자 머신에서 수동 확인 필요
 - [~] `npm run watch` 로 개발 워치 빌드 동작 확인 — ENOSPC로 중단됨, 디스크 10GB+ 확보 후 재검증 필요
-- [~] `./scripts/code.bat` (Windows) / `./scripts/code.sh` 로 Kcode 실행 확인 — 루트 `scripts/code.bat` 래퍼 추가됨, watch 빌드 완료·실행 미검증
+- [~] `./scripts/code.bat` (Windows) — Kcode.exe·transpile-client 성공; **policy-watcher .node 없으면 즉시 종료** (Spectre 후 `npm ci` 필수)
 - [x] 별도 Git 리포 생성, `vscode-main`을 upstream remote로 연결 — `sly22/kcode`, vendored upstream
 
 ## Phase 1 — 리브랜딩 (3~5일)

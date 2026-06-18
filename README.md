@@ -81,6 +81,23 @@ VSCode 전체 빌드는 **10GB+** 여유 공간이 필요합니다.
 node -v   # vscode-main/vscode-main/.nvmrc 와 일치하는지 확인
 ```
 
+#### Windows에서 Node 24.15.0 (fnm)
+
+시스템에 Node 22만 설치된 경우 [fnm](https://github.com/Schniz/fnm)으로 .nvmrc 버전을 맞춥니다.
+
+`powershell
+winget install Schniz.fnm
+# 새 PowerShell 창에서:
+fnm install 24.15.0
+fnm use 24.15.0
+# 프로필에 fnm env 추가 (https://github.com/Schniz/fnm#shell-setup)
+node -v   # v24.15.0
+`
+
+빌드 전 
+ode_modules를 지우고 **Node 24 PATH**가 잡힌 터미널에서 
+pm ci를 실행하세요.
+
 ### Visual Studio Build Tools (Windows)
 
 네이티브 모듈 컴파일에 **C++ 워크로드**와 **Spectre-mitigated libraries**가 필요합니다.

@@ -71,4 +71,33 @@ if (Test-Path $devcontainer) {
     Write-Host "  .devcontainer/devcontainer.json"
 }
 
+# Kcode contrib 소스 복사 (kcode-src → vscode-main)
+$kcodeSrc = Join-Path $root "kcode-src\src\vs\workbench\contrib\kcode"
+$kcodeDest = Join-Path $vscode "src\vs\workbench\contrib\kcode"
+if (Test-Path $kcodeSrc) {
+    if (Test-Path $kcodeDest) { Remove-Item -Recurse -Force $kcodeDest }
+    Copy-Item -Recurse -Force $kcodeSrc $kcodeDest
+    $fileCount = (Get-ChildItem $kcodeSrc -Recurse -File).Count
+    Write-Host "  kcode contrib ($fileCount files)"
+}
+
+# workbench.common.main.ts — Kcode contrib 등록 (// KCODE: 마커)
+$wbMain = Join-Path $vscode "src\vs\workbench\workbench.common.main.ts"
+if (Test-Path $wbMain) {
+    $content = Get-Content $wbMain -Raw
+    if ($content -notmatch 'KCODE: start - kcode contribution') {
+        $anchor = "import './contrib/imageCarousel/browser/imageCarousel.contribution.js';"
+        $insert = @"
+$anchor
+
+// KCODE: start - kcode contribution
+import './contrib/kcode/browser/kcode.contribution.js';
+// KCODE: end - kcode contribution
+"@
+        $content = $content.Replace($anchor, $insert)
+        [System.IO.File]::WriteAllText($wbMain, $content)
+        Write-Host "  workbench.common.main.ts (kcode contrib)"
+    }
+}
+
 Write-Host "Kcode 리브랜딩 완료."

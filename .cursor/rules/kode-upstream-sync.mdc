@@ -1,5 +1,5 @@
 ---
-description: 마이코드 ↔ VSCode upstream 동기화 / 머지 전략
+description: Kode ↔ VSCode upstream 동기화 / 머지 전략
 alwaysApply: true
 ---
 
@@ -10,10 +10,10 @@ VSCode 본가는 빠르게 움직이므로, 머지 충돌을 최소화하는 구
 ## Git 토폴로지
 
 - `upstream` remote: `https://github.com/microsoft/vscode.git`
-- `origin` remote: 마이코드 자체 리포
+- `origin` remote: Kode 자체 리포
 - 브랜치:
   - `upstream/main` — 손대지 않음
-  - `main` (origin) — 마이코드 안정 브랜치 (월 1회 머지)
+  - `main` (origin) — Kode 안정 브랜치 (월 1회 머지)
   - `dev/*` — 기능 브랜치
   - `vendor/upstream-YYYYMMDD` — 머지 시점 스냅샷 태그용
 
@@ -29,8 +29,8 @@ git merge upstream/main
 머지 충돌을 줄이려면:
 
 1. **product.json / package.json 외 코어 파일 직접 수정 금지** (가능한 경우)
-2. 새 기능은 `src/vs/workbench/contrib/mycode/` 또는 `extensions/mycode-*/` 에 추가
-3. 기존 파일을 수정해야 하면 `// MYCODE: 시작/끝` 주석 마커로 변경 영역을 표시
+2. 새 기능은 `src/vs/workbench/contrib/kode/` 또는 `extensions/kode-*/` 에 추가
+3. 기존 파일을 수정해야 하면 `// KODE: 시작/끝` 주석 마커로 변경 영역을 표시
 4. 변경 분량이 크면 **별도 패치 파일**로 보관하고 빌드 시 적용 (`patches/`)
 5. 코어 인터페이스 확장은 dependency injection 으로, 직접 수정 대신 신규
    서비스 등록을 선호
@@ -41,14 +41,14 @@ git merge upstream/main
 
 - [ ] `npm ci` 후 `npm run watch` 빌드 통과
 - [ ] `npm run eslint`, `npm run hygiene` 통과
-- [ ] product.json 키가 마이코드 값을 유지하는지 확인
+- [ ] product.json 키가 Kode 값을 유지하는지 확인
 - [ ] 빌트인 확장 목록(`product.json:builtInExtensions`) MS 전용 확장 제거 상태 확인
 - [ ] AI 통합 지점(인라인 컴플리션 API, ChatProvider API) 호환성 검증
 - [ ] 스모크 테스트(`scripts/test.bat` 또는 smoketest) 통과
-- [ ] 새 GUID/Bundle ID 등 식별자가 마이코드 값을 유지하는지 확인
+- [ ] 새 GUID/Bundle ID 등 식별자가 Kode 값을 유지하는지 확인
 
 ## 코드 리뷰 시 확인
 
-- VSCode 머지 PR과 마이코드 기능 PR은 **분리**.
-- 머지 PR의 diff에 마이코드 변경이 섞이지 않게, 머지는 `--no-ff` + 단일 커밋.
+- VSCode 머지 PR과 Kode 기능 PR은 **분리**.
+- 머지 PR의 diff에 Kode 변경이 섞이지 않게, 머지는 `--no-ff` + 단일 커밋.
 - 충돌 해결 커밋 메시지 형식: `chore(sync): merge upstream YYYY-MM-DD`.

@@ -1,5 +1,5 @@
 ---
-description: VSCode → 마이코드 리브랜딩 작업 가이드 (이름, 식별자, 아이콘)
+description: VSCode → Kode 리브랜딩 작업 가이드 (이름, 식별자, 아이콘)
 globs: vscode-main/vscode-main/product.json,vscode-main/vscode-main/package.json,vscode-main/vscode-main/resources/**
 alwaysApply: false
 ---
@@ -8,28 +8,28 @@ alwaysApply: false
 
 ## product.json 핵심 키 매핑
 
-`vscode-main/vscode-main/product.json` 의 다음 키들을 마이코드 값으로 교체.
+`vscode-main/vscode-main/product.json` 의 다음 키들을 Kode 값으로 교체.
 
 ```json
 {
-  "nameShort": "MyCode",
-  "nameLong": "MyCode",
-  "applicationName": "mycode",
-  "dataFolderName": ".mycode",
-  "sharedDataFolderName": ".mycode-shared",
-  "win32MutexName": "mycode",
-  "win32DirName": "MyCode",
-  "win32NameVersion": "MyCode",
-  "win32RegValueName": "MyCode",
-  "win32AppUserModelId": "MyCode.MyCode",
-  "win32ShellNameShort": "MyC&ode",
-  "darwinBundleIdentifier": "com.mycode.app",
-  "linuxIconName": "mycode",
-  "urlProtocol": "mycode",
-  "serverApplicationName": "mycode-server",
-  "serverDataFolderName": ".mycode-server",
-  "tunnelApplicationName": "mycode-tunnel",
-  "reportIssueUrl": "https://github.com/sly21/mycode/issues/new"
+  "nameShort": "Kode",
+  "nameLong": "Kode",
+  "applicationName": "kode",
+  "dataFolderName": ".kode",
+  "sharedDataFolderName": ".kode-shared",
+  "win32MutexName": "kode",
+  "win32DirName": "Kode",
+  "win32NameVersion": "Kode",
+  "win32RegValueName": "Kode",
+  "win32AppUserModelId": "Kode.Kode",
+  "win32ShellNameShort": "K&ode",
+  "darwinBundleIdentifier": "com.kode.app",
+  "linuxIconName": "kode",
+  "urlProtocol": "kode",
+  "serverApplicationName": "kode-server",
+  "serverDataFolderName": ".kode-server",
+  "tunnelApplicationName": "kode-tunnel",
+  "reportIssueUrl": "https://github.com/sly21/kode/issues/new"
 }
 ```
 
@@ -37,17 +37,17 @@ alwaysApply: false
   `win32x64UserAppId`, `win32arm64UserAppId`)은 **새 GUID 발급 후 교체**.
 - `darwinProfileUUID`, `darwinProfilePayloadUUID` 도 새로 발급.
 - `webviewContentExternalBaseUrlTemplate` 는 자체 CDN 또는 빈 값으로.
-- `defaultChatAgent` 블록은 마이코드 기본 챗 에이전트(자체 확장 ID)로 교체.
+- `defaultChatAgent` 블록은 Kode 기본 챗 에이전트(자체 확장 ID)로 교체.
 - `builtInExtensions` 에서 MS 전용 확장(`ms-vscode.*`) 제거 또는 대체.
 
 ## package.json
 
 ```jsonc
 {
-  "name": "mycode",
+  "name": "kode",
   "version": "0.1.0",
-  "repository": { "type": "git", "url": "https://github.com/sly21/mycode.git" },
-  "bugs": { "url": "https://github.com/sly21/mycode/issues" }
+  "repository": { "type": "git", "url": "https://github.com/sly21/kode.git" },
+  "bugs": { "url": "https://github.com/sly21/kode/issues" }
 }
 ```
 
@@ -55,9 +55,9 @@ alwaysApply: false
 
 ## 아이콘·인스톨러 자산
 
-- `resources/win32/code.ico` → `mycode.ico` 로 교체 (256×256 포함 멀티 사이즈)
-- `resources/darwin/code.icns` → `mycode.icns`
-- `resources/linux/code.png`, `*.desktop` → mycode 자산으로 교체
+- `resources/win32/code.ico` → `kode.ico` 로 교체 (256×256 포함 멀티 사이즈)
+- `resources/darwin/code.icns` → `kode.icns`
+- `resources/linux/code.png`, `*.desktop` → kode 자산으로 교체
 - `resources/server/code-192.png`, `code-512.png` 도 교체
 - 인스톨러 텍스트(`build/win32/i18n/`) 의 "Visual Studio Code" 문구를 일괄 치환
 

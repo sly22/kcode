@@ -15,6 +15,7 @@ if (Test-Path "$TargetDir\.git") {
         Write-Host "upstream remote 추가됨"
     }
     Pop-Location
+    & "$PSScriptRoot\apply-kode-rebranding.ps1" -VscodeDir $TargetDir
     exit 0
 }
 
@@ -25,3 +26,5 @@ Push-Location $TargetDir
 git remote rename origin upstream
 Write-Host "완료. upstream = $vscodeUrl"
 Pop-Location
+
+& "$PSScriptRoot\apply-kode-rebranding.ps1" -VscodeDir $TargetDir

@@ -120,6 +120,32 @@ pm ci를 실행하세요.
 
 Spectre 설치 후에는 `node_modules`를 삭제한 뒤 **Node 24 PATH**가 잡힌 터미널에서 `npm ci`를 다시 실행하세요.
 
+### Kcode 실행 실패 (EBUSY / 명령을 찾을 수 없음)
+
+| 증상 | 원인 | 조치 |
+| ---- | ---- | ---- |
+| `EBUSY: unlink ... default_app.asar` | Kcode/Electron이 실행 중인데 `preLaunch`가 electron 재빌드 시도 | Kcode 종료 후 재실행, 또는 `VSCODE_SKIP_PRELAUNCH=1`로 재빌드 스킵 |
+| `'.build\electron\Kcode.exe'은(는) 내부 또는 외부 명령...` | upstream `code.bat` 경로·따옴표 파싱 오류 | 루트 `.\scripts\code.bat` 래퍼 사용 (exe 직접 실행) |
+
+```powershell
+# 1) Kcode 종료 후 정상 실행
+taskkill /IM Kcode.exe /F 2>$null
+.\scripts\code.bat
+
+# 2) 이미 빌드된 exe만 재실행 (electron 재빌드 스킵 — exe가 있으면 기본값)
+.\scripts\code.bat
+
+# 3) electron 강제 재빌드 (Kcode 반드시 종료)
+taskkill /IM Kcode.exe /F 2>$null
+Remove-Item Env:VSCODE_SKIP_PRELAUNCH -ErrorAction SilentlyContinue
+cd vscode-main\vscode-main
+npm run electron
+cd ..\..
+.\scripts\code.bat
+```
+
+`VSCODE_SKIP_PRELAUNCH=1`이면 upstream `preLaunch.ts`(electron·compile)를 건너뜁니다. `.build\electron\Kcode.exe`가 이미 있으면 래퍼가 자동으로 설정합니다.
+
 ### 확장 활성화 오류 (emmet / github-authentication / copilot-chat)
 
 `Cannot find module` 또는 `Activating extension ... failed` 가 뜨면 **확장 하위 `node_modules`가 없거나 Copilot이 스캔된 상태**입니다.

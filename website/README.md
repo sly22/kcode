@@ -10,7 +10,9 @@ npm install
 npm run dev
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000) 을 엽니다.
+브라우저에서 [http://localhost:3070](http://localhost:3070) 을 엽니다.
+
+> Windows에서 Hyper-V/WSL 예약 포트(2970–3069) 때문에 **3000번 포트는 사용할 수 없습니다**. `npm run dev`는 **3070** 포트로 실행됩니다.
 
 | Command | Description |
 |---------|-------------|

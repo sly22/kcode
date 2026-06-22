@@ -53,9 +53,23 @@ kcode/
 | ----------- | ------------------------------------- | ---------------------------- |
 | Ask 채팅    | 우측 사이드바 뷰                       | `chatView/`                  |
 | 인라인 편집 | `Ctrl+K` (선택 영역 위에 인풋 박스)    | `inlineEdit/`                |
-| 에이전트    | 채팅 모드 토글, 도구 승인 모달          | `agent/`                     |
+| 에이전트    | 채팅 Agent 토글, 도구 승인·미리보기     | `agent/` (`kcodeAgentService.ts`) |
 | 자동완성    | `editor.contrib` 인라인 컴플리션 API   | `extensions/kcode-completion/` |
 | Next Edit   | 멀티 캐럿 미리보기                     | `editor.contrib` 신규 위젯   |
+
+## 에이전트 도구
+
+| 도구 | 설명 |
+| ---- | ---- |
+| `read_file` | 워크스페이스 파일 읽기 |
+| `search` | 워크스페이스 텍스트 검색 |
+| `terminal` | 터미널 명령 실행 (승인 필요) |
+| `write_file` | 파일 생성·전체 덮어쓰기 (승인·미리보기) |
+| `edit_file` | `old_string`→`new_string` 부분 편집 (승인·미리보기) |
+
+- **tool calling은 OpenAI·Anthropic 전용** — Ollama/로컬 모델은 tool_calls 미지원; Agent 모드 시 모델 피커에서 `openai:`/`anthropic:` 선택 필요.
+- 스키마: `kcodeAgentToolSchemas.ts` → `toOpenAITools` / `toAnthropicTools`.
+- 승인 UX: 채팅 Approve/Reject, write/edit 미리보기, 필요 시 mkdir·에디터 열기.
 
 ## 컨텍스트 시스템
 

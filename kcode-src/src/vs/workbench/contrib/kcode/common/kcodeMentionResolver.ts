@@ -21,6 +21,32 @@ export async function resolveWorkspaceFile(
 	return resolveMentionTarget(target, fileService, workspaceService);
 }
 
+/** Resolve a workspace-relative path to a URI (file may not exist yet). */
+export function resolveWorkspacePathUri(
+	target: string,
+	workspaceService: IWorkspaceContextService,
+): URI | undefined {
+	const normalized = target.replace(/\\/g, '/').replace(/^\.\//, '');
+	const folders = workspaceService.getWorkspace().folders;
+	if (folders.length === 0 || !normalized) {
+		return undefined;
+	}
+	return URI.joinPath(folders[0].uri, normalized);
+}
+
+/** Resolve an existing workspace file URI, or fall back to path resolution for new files. */
+export async function resolveWorkspaceFileUri(
+	target: string,
+	fileService: IFileService,
+	workspaceService: IWorkspaceContextService,
+): Promise<URI | undefined> {
+	const existing = await resolveMentionTarget(target, fileService, workspaceService);
+	if (existing) {
+		return URI.parse(existing.uri);
+	}
+	return resolveWorkspacePathUri(target, workspaceService);
+}
+
 export async function resolveMentions(
 	mentions: readonly ContextItem[],
 	fileService: IFileService,

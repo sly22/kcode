@@ -11,24 +11,25 @@ alwaysApply: true
 
 ## Phase 0 — 환경 셋업 (1~2일)
 
-- [x] Node.js 버전 확인 (`vscode-main/.nvmrc`), `npm ci` — 스크립트·문서 준비됨, 로컬 빌드는 사용자 환경에서 검증 필요
-- [~] Python, Visual Studio Build Tools, electron-rebuild 사전 요구사항 설치 — README 빌드 문제 해결 섹션 문서화, 사용자 머신에서 수동 확인 필요
-- [~] `npm run watch` 로 개발 워치 빌드 동작 확인 — ENOSPC로 중단됨, 디스크 10GB+ 확보 후 재검증 필요
-- [~] `./scripts/code.bat` (Windows) — Kcode.exe·transpile-client 성공; **policy-watcher .node 없으면 즉시 종료** (Spectre 후 `npm ci` 필수)
+- [x] Node.js 버전 확인 (`vscode-main/.nvmrc`), `npm ci` — `use-node24.ps1`·README 문서화; `.tools/` 포터블 Node 지원 (gitignore)
+- [~] Python, Visual Studio Build Tools, electron-rebuild 사전 요구사항 — README Spectre·MSB8040·네이티브 재빌드 섹션; `rebuild-native.ps1`로 policy-watcher 등 .node 재빌드
+- [~] `npm run watch` 로 개발 워치 빌드 — 디스크·ENOSPC 환경 의존; 런타임 검증은 부분적
+- [~] `./scripts/code.bat` (Windows) — PATH·codicon·확장 deps·copilot 스킵 연동; Spectre + `rebuild-native.ps1` 후 Kcode.exe 기동 확인됨; API·에이전트 런타임은 미완
+- [x] 빌드 보조 스크립트 — `rebuild-native.ps1`, `ensure-extension-deps.ps1`, `use-node24.ps1`
 - [x] 별도 Git 리포 생성, `vscode-main`을 upstream remote로 연결 — `sly22/kcode`, vendored upstream
 
 ## Phase 1 — 리브랜딩 (3~5일)
 
 - [x] `product.json` 의 이름·ID·프로토콜·디렉터리 키 일괄 교체 — `branding/product.json` + `apply-kcode-rebranding.ps1`
 - [x] `package.json` 의 `name` → `kcode-dev`, repository/bugs URL 교체 — apply 스크립트
-- [~] `resources/{win32,darwin,linux}` 아이콘·인스톨러 리소스 교체 — placeholder 복사 + `README-icons.md`, 커스텀 아트워크 미완
-- [~] About 다이얼로그, Welcome 페이지 문구 교체 — apply 스크립트 KCODE 패치 (About 부제, Welcome Copilot→Kcode), 빌드 검증 필요
-- [~] `code-oss` 바이너리 이름을 `kcode` 로 변경 후 빌드 검증 — product.json 설정됨, `defaultChatAgent` Kcode placeholder, 빌드 미검증
+- [~] `resources/{win32,darwin,linux}` 아이콘·인스톨러 리소스 교체 — placeholder + `codicon.ttf` 복사(apply); 커스텀 아트워크 미완
+- [~] About·Welcome·onboarding·chatSetup 문구 — apply 스크립트 KCODE 패치 (Copilot→Kcode); 런타임 UI 검증 부분적
+- [~] `code-oss` 바이너리 이름 `kcode` — product.json 설정, `defaultChatAgent` Kcode placeholder; copilot 빌드 제외(`branding/overrides/build/npm/dirs.ts`)
 - [x] 자세한 가이드는 **kcode-rebranding** 룰 참고
 
 ## Phase 2 — AI 기반 골격 (1~2주)
 
-- [~] `extensions/copilot` 의존 제거 또는 Kcode 전용으로 포크 — product.json에서 Copilot 제거, `defaultChatAgent` → Kcode; upstream copilot 폴더는 vendored 잔존
+- [~] `extensions/copilot` 의존 제거 — product.json Copilot 제거·`builtInExtensionsEnabledWithAutoUpdates`/`sessionsWindowAllowedExtensions` 조정; `dirs.ts` 빌드 제외·`code.bat` copilot 스킵; upstream 폴더는 vendored 잔존
 - [x] `kcode-src/…/contrib/kcode/` 디렉터리 생성, 채팅 사이드바 등록 — `KcodeChatView`, `Ctrl+Shift+L`, 모델 피커
 - [x] LLM 추상화 레이어(`IKcodeChatService`) 정의 — OpenAI/Anthropic/Ollama 어댑터, `KcodeChatService` 라우팅
 - [x] 인증·API 키 저장 (Secret Storage) — `IKcodeSecretStorageService`, `Kcode: Set * API Key` 명령, 설정→Secret 마이그레이션
@@ -39,7 +40,7 @@ alwaysApply: true
 
 - [~] 채팅(Ask): 컨텍스트 첨부(파일/선택/문제/터미널) — 툴바 + chip UI, `buildContextPrompt`; @file·@symbol·@docs·@web 멘션 + `@` 피커; 한국어 시스템 프롬프트 + `.kcode/rules/` 로드; 빌드·런타임 미검증
 - [~] 인라인 편집(Cmd/Ctrl+K): 선택 영역 변환·생성 — `kcodeInlineEdit.ts`: QuickInput → LLM 스트리밍 → 적용/취소; 한국어 시스템 프롬프트; 빌드·런타임 미검증
-- [~] 에이전트 모드: 도구 호출 및 승인 워크플로 — Agent 토글, LLM tool loop, Anthropic `tool_result` 포맷, Reject 시 배치 스킵, 채팅 Approve/Reject UI, read_file/search/terminal 실행; 빌드·런타임 미검증
+- [~] 에이전트 모드: 도구 호출 및 승인 — read_file/search/terminal/**write_file/edit_file**; OpenAI·Anthropic tool_calls 파싱; 승인 미리보기·mkdir·에디터 열기; 로컬(Ollama) 모델 힌트; 런타임 검증 부분적
 - [~] Tab 자동완성: 고스트 텍스트 — `kcodeInlineCompletion.ts` LLM 연동 (debounce 450ms, `kcode.privacy.sendCode` 필요); Next Edit Suggestion 설정 스켈레톤; 빌드·런타임 미검증
 - [~] `@` 멘션(파일/심볼/Docs/Web) 컨텍스트 — `@path`·`@symbol:name` + 피커; `@docs`·`@web` 스텁 리졸버; 실제 Docs/Web fetch 미구현
 
@@ -62,6 +63,6 @@ alwaysApply: true
 
 ## 브랜치 메모
 
-- `dev/phase3-features` — **현재 작업 브랜치**: Tab LLM completion, Anthropic tool_result, @docs/@web stub, update check, Korean prompts, `.kcode/rules/`
+- `dev/phase3-features` — **현재 작업 브랜치**: agent write_file/edit_file, copilot 빌드 제외, 빌드 스크립트(rebuild-native·ensure-extension-deps), apply 패치 확장
 - `dev/website` — `dev/phase3-features`에 머지 완료, 별도 브랜치 유지 불필요
 - `main` — 안정 브랜치 (Phase 3 미머지)

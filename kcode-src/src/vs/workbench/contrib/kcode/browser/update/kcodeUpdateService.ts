@@ -3,8 +3,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable } from '../../../../../base/common/lifecycle.js';
+import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { URI } from '../../../../../base/common/uri.js';
-import { Severity } from '../../../../../base/common/severity.js';
+import Severity from '../../../../../base/common/severity.js';
 import { localize } from '../../../../../nls.js';
 import { IConfigurationService } from '../../../../../platform/configuration/common/configuration.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
@@ -49,7 +50,7 @@ export class KcodeUpdateContribution extends Disposable {
 				url: feedUrl,
 				headers: { Accept: 'application/json' },
 				callSite: 'KcodeUpdateContribution.checkForUpdates',
-			}, undefined);
+			}, CancellationToken.None);
 
 			const text = await asText(response);
 			if (!text || (response.res.statusCode && response.res.statusCode >= 400)) {

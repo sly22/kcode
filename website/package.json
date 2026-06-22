@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -H 127.0.0.1 -p 3070",
     "build": "next build",
+    "build:static": "next build && node scripts/copy-static-deploy.mjs",
     "start": "next start",
     "lint": "eslint"
   },

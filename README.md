@@ -120,9 +120,29 @@ pm ci를 실행하세요.
 
 Spectre 설치 후에는 `node_modules`를 삭제한 뒤 **Node 24 PATH**가 잡힌 터미널에서 `npm ci`를 다시 실행하세요.
 
+### 확장 활성화 오류 (emmet / github-authentication / copilot-chat)
+
+`Cannot find module` 또는 `Activating extension ... failed` 가 뜨면 **확장 하위 `node_modules`가 없거나 Copilot이 스캔된 상태**입니다.
+
+| 증상 | 원인 | 조치 |
+| ---- | ---- | ---- |
+| `vscode.emmet` — `@emmetio/...` | `extensions/emmet/node_modules` 미설치 | 아래 1~2 |
+| `vscode.github-authentication` | `extensions/github-authentication/node_modules` 미설치 | 아래 1~2 |
+| `GitHub.copilot-chat` | Kcode에 Copilot 미포함, upstream `extensions/copilot` 잔존 | `apply-kcode-rebranding.ps1` 재실행 |
+
+```powershell
+.\scripts\apply-kcode-rebranding.ps1
+cd vscode-main\vscode-main
+npm ci
+npm run watch
+.\scripts\code.bat
+```
+
+`code.bat`은 시작 전 `ensure-extension-deps.ps1`로 emmet·github-authentication 등 필수 확장 deps를 자동 설치합니다. 전체 복구는 루트 `vscode-main\vscode-main`에서 `npm ci`가 가장 확실합니다.
+
 ### 첫 실행 체크리스트
 
-1. `.\scripts\apply-kcode-rebranding.ps1` — product.json + kcode-src 복사
+1. `.\scripts\apply-kcode-rebranding.ps1` — product.json + kcode-src 복사 + Copilot 비활성화
 2. `npm ci` + `npm run watch` (별도 터미널, 완료까지 10~30분)
 3. `.\scripts\code.bat` — Kcode 창 실행
 4. 보조 사이드바 → **Kcode Chat** 또는 `Ctrl+Shift+L`

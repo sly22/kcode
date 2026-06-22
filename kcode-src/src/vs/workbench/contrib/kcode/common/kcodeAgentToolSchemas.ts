@@ -27,6 +27,23 @@ const TOOL_PARAMETERS: Record<KcodeAgentToolName, object> = {
 		},
 		required: ['command'],
 	},
+	write_file: {
+		type: 'object',
+		properties: {
+			path: { type: 'string', description: 'Workspace-relative file path.' },
+			content: { type: 'string', description: 'Full file content to write.' },
+		},
+		required: ['path', 'content'],
+	},
+	edit_file: {
+		type: 'object',
+		properties: {
+			path: { type: 'string', description: 'Workspace-relative file path.' },
+			old_string: { type: 'string', description: 'Exact text to replace (must appear exactly once).' },
+			new_string: { type: 'string', description: 'Replacement text.' },
+		},
+		required: ['path', 'old_string', 'new_string'],
+	},
 };
 
 export function toOpenAITools(tools: readonly ToolSpec[]): object[] {

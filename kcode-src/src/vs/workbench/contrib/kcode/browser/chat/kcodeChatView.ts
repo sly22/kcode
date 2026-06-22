@@ -34,12 +34,17 @@ import { ChatMessage, ContextItem, IKcodeChatService } from '../../common/kcodeC
 import { KCODE_CONFIG_AGENT_MODE, KCODE_CONFIG_DEFAULT_MODEL } from '../../common/kcodeConstants.js';
 import { getActiveMentionFilter, insertMentionAtCursor, parseMentions } from '../../common/kcodeMentionParser.js';
 import { resolveMentions } from '../../common/kcodeMentionResolver.js';
+import { KcodeProvider, modelProviderPrefix } from '../../common/kcodeModels.js';
 import { KCODE_DEFAULT_SYSTEM_PROMPT } from '../../common/kcodeSystemPrompt.js';
 import { loadWorkspaceRules } from '../../common/kcodeWorkspaceRules.js';
 import { KcodeMentionPicker } from './kcodeMentionPicker.js';
 import { KcodeModelPicker } from './kcodeModelPicker.js';
 
 const MAX_AGENT_TURNS = 8;
+
+const KCODE_AGENT_MODE_SYSTEM_SUPPLEMENT = `현재 Agent 모드가 활성화되어 있습니다.
+파일 생성·수정·검색·터미널 실행이 필요하면 설명만 하지 말고 반드시 read_file, search, write_file, edit_file, terminal 도구를 호출하세요.
+도구 호출 없이 "작업을 시작합니다" 등의 텍스트만 반환하지 마세요.`;
 
 interface ToolCallUiState {
 	readonly call: AgentToolCall;
@@ -60,15 +65,16 @@ export class KcodeChatView extends ViewPane {
 	private readonly attachments: ContextItem[] = [];
 	private agentModeEnabled = false;
 	private pendingToolUi: ToolCallUiState | undefined;
+	private localAgentToolsHintShown = false;
 
 	constructor(
 		options: IViewPaneOptions,
 		@IKeybindingService keybindingService: IKeybindingService,
 		@IContextMenuService contextMenuService: IContextMenuService,
-		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IConfigurationService override readonly configurationService: IConfigurationService,
 		@IContextKeyService contextKeyService: IContextKeyService,
 		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
-		@IInstantiationService private readonly instantiationService: IInstantiationService,
+		@IInstantiationService override readonly instantiationService: IInstantiationService,
 		@IOpenerService openerService: IOpenerService,
 		@IThemeService themeService: IThemeService,
 		@IHoverService hoverService: IHoverService,
@@ -180,7 +186,7 @@ export class KcodeChatView extends ViewPane {
 		const welcome = dom.append(this.messagesContainer, dom.$('.kcode-chat-welcome'));
 		welcome.textContent = localize(
 			'kcode.chat.welcome',
-			'Kcode AI 채팅입니다.\n상단에서 모델을 선택하고 메시지를 입력하세요.\n@filename · @symbol:name · @docs · @web 멘션, 파일·선택·터미널·문제 첨부\nCtrl+K: 선택 영역 인라인 편집 · Tab: LLM 고스트 자동완성 (kcode.privacy.sendCode 필요)\nAgent mode: read_file / search / terminal (채팅에서 승인)\n워크스페이스 룰: .kcode/rules/*.md\nAPI 키: 명령 팔레트 → "Kcode: Set OpenAI API Key" / "Set Anthropic API Key"\n로컬: Ollama (기본 http://127.0.0.1:11434)'
+			'Kcode AI 채팅입니다.\n상단에서 모델을 선택하고 메시지를 입력하세요.\n@filename · @symbol:name · @docs · @web 멘션, 파일·선택·터미널·문제 첨부\nCtrl+K: 선택 영역 인라인 편집 · Tab: LLM 고스트 자동완성 (kcode.privacy.sendCode 필요)\nAgent mode: read_file / search / write_file / edit_file / terminal (채팅에서 승인)\n워크스페이스 룰: .kcode/rules/*.md\nAPI 키: 명령 팔레트 → "Kcode: Set OpenAI API Key" / "Set Anthropic API Key"\n로컬: Ollama (기본 http://127.0.0.1:11434)'
 		);
 	}
 
@@ -196,7 +202,7 @@ export class KcodeChatView extends ViewPane {
 		this.agentBanner.style.display = 'block';
 		this.agentBanner.textContent = localize(
 			'kcode.chat.agentBanner',
-			'Agent mode — tool calls appear in chat with Approve / Reject buttons.',
+			'Agent mode — read/write files and run tools with Approve / Reject.',
 		);
 	}
 
@@ -241,16 +247,55 @@ export class KcodeChatView extends ViewPane {
 		this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
 	}
 
+	private formatToolCallTitle(call: AgentToolCall): string {
+		const path = call.args.path ?? '';
+		switch (call.name) {
+			case 'write_file':
+				return localize('kcode.chat.toolCall.writeFile', 'Write file: {0}', path || '(no path)');
+			case 'edit_file':
+				return localize('kcode.chat.toolCall.editFile', 'Edit file: {0}', path || '(no path)');
+			default:
+				return localize('kcode.chat.toolCall', 'Agent tool call: {0}', call.name);
+		}
+	}
+
+	private formatToolCallArgs(call: AgentToolCall): string {
+		switch (call.name) {
+			case 'write_file': {
+				const content = call.args.content ?? '';
+				const preview = content.length > 400 ? `${content.slice(0, 400)}…` : content;
+				return localize('kcode.chat.toolCall.writeFile.preview', 'Path: {0}\nContent ({1} chars):\n{2}', call.args.path ?? '', String(content.length), preview);
+			}
+			case 'edit_file': {
+				const oldStr = call.args.old_string ?? '';
+				const newStr = call.args.new_string ?? '';
+				const oldPreview = oldStr.length > 200 ? `${oldStr.slice(0, 200)}…` : oldStr;
+				const newPreview = newStr.length > 200 ? `${newStr.slice(0, 200)}…` : newStr;
+				return localize(
+					'kcode.chat.toolCall.editFile.preview',
+					'Path: {0}\nReplace ({1} chars):\n{2}\n\nWith ({3} chars):\n{4}',
+					call.args.path ?? '',
+					String(oldStr.length),
+					oldPreview,
+					String(newStr.length),
+					newPreview,
+				);
+			}
+			default:
+				return JSON.stringify(call.args, null, 2);
+		}
+	}
+
 	private renderToolApprovalCard(state: ToolCallUiState): void {
 		if (!this.messagesContainer) {
 			return;
 		}
 		const card = dom.append(this.messagesContainer, dom.$('.kcode-chat-tool-call'));
 		const title = dom.append(card, dom.$('.kcode-chat-tool-call-title'));
-		title.textContent = localize('kcode.chat.toolCall', 'Agent tool call: {0}', state.call.name);
+		title.textContent = this.formatToolCallTitle(state.call);
 
 		const args = dom.append(card, dom.$('.kcode-chat-tool-call-args'));
-		args.textContent = JSON.stringify(state.call.args, null, 2);
+		args.textContent = this.formatToolCallArgs(state.call);
 
 		const actions = dom.append(card, dom.$('.kcode-chat-tool-call-actions'));
 		const approve = dom.append(actions, dom.$('button.kcode-chat-tool-approve')) as HTMLButtonElement;
@@ -278,10 +323,14 @@ export class KcodeChatView extends ViewPane {
 
 	private async buildSystemMessage(): Promise<ChatMessage> {
 		const rules = await loadWorkspaceRules(this.fileService, this.workspaceService);
-		const content = rules
-			? `${KCODE_DEFAULT_SYSTEM_PROMPT}\n\n${rules}`
-			: KCODE_DEFAULT_SYSTEM_PROMPT;
-		return { role: 'system', content };
+		const parts = [KCODE_DEFAULT_SYSTEM_PROMPT];
+		if (this.agentModeEnabled) {
+			parts.push(KCODE_AGENT_MODE_SYSTEM_SUPPLEMENT);
+		}
+		if (rules) {
+			parts.push(rules);
+		}
+		return { role: 'system', content: parts.join('\n\n') };
 	}
 
 	private withSystemMessage(messages: ChatMessage[]): ChatMessage[] {
@@ -428,6 +477,7 @@ export class KcodeChatView extends ViewPane {
 		const messagesWithSystem = [systemMessage, ...this.withSystemMessage(conversationMessages)];
 
 		if (this.agentModeEnabled) {
+			this.maybeShowLocalModelAgentHint(model);
 			await this.runAgentLoop(messagesWithSystem, model);
 		} else {
 			await this.runSingleTurn(messagesWithSystem, model);
@@ -456,6 +506,39 @@ export class KcodeChatView extends ViewPane {
 
 		this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
 		this.renderMessages();
+	}
+
+	private maybeShowLocalModelAgentHint(model: string): void {
+		if (this.localAgentToolsHintShown || !this.agentModeEnabled) {
+			return;
+		}
+		const provider = modelProviderPrefix(model);
+		if (provider !== KcodeProvider.Local) {
+			return;
+		}
+		this.localAgentToolsHintShown = true;
+		this.history.push({
+			role: 'assistant',
+			content: localize(
+				'kcode.agent.localModelHint',
+				'[Hint] Agent tools (write_file, edit_file, terminal) require OpenAI or Anthropic models. Ollama/local models do not support tool calling — switch the model picker to openai:… or anthropic:….',
+			),
+		});
+		this.renderMessages();
+	}
+
+	private buildNoToolCallsNotice(model: string): string {
+		const provider = modelProviderPrefix(model);
+		if (provider === KcodeProvider.Local) {
+			return localize(
+				'kcode.agent.noToolCalls.local',
+				'[Agent] No tools were invoked. Local Ollama models do not support Kcode agent tools yet — switch to OpenAI or Anthropic.',
+			);
+		}
+		return localize(
+			'kcode.agent.noToolCalls',
+			'[Agent] No tools were invoked. The model replied with text only. Check your API key and quota, then try again or rephrase the request.',
+		);
 	}
 
 	private async runAgentLoop(initialMessages: ChatMessage[], model: string): Promise<void> {
@@ -495,7 +578,11 @@ export class KcodeChatView extends ViewPane {
 			}
 
 			if (toolCalls.length === 0) {
-				this.history[this.history.length - 1] = { role: 'assistant', content: assistantText };
+				const noToolsNotice = this.buildNoToolCallsNotice(model);
+				const content = assistantText.trim()
+					? `${assistantText}\n\n${noToolsNotice}`
+					: noToolsNotice;
+				this.history[this.history.length - 1] = { role: 'assistant', content };
 				this.renderMessages();
 				return;
 			}

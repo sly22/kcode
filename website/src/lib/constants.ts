@@ -21,6 +21,19 @@ export const INTEGRATION = {
   },
 } as const;
 
+export const COMPANY = {
+  brand: "VASO",
+  legalName: "주식회사 바소",
+  representative: "이정원",
+  businessRegistrationNumber: "798-86-02341",
+  mailOrderReportNumber: "제2021-광주남구-0614호",
+  privacyOfficer: "이희찬",
+  address: "광주광역시 남구 회재로 1224번길 16-1, 2F",
+  email: "help@vnsoft.co.kr",
+  customerCenter: "070.7806.5004",
+  fax: "050.8090.5004",
+} as const;
+
 export const FEATURES = [
   {
     id: "chat",

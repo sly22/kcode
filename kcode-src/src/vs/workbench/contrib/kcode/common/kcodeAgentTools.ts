@@ -17,9 +17,17 @@ export const KCODE_AGENT_TOOLS: readonly ToolSpec[] = [
 		name: 'terminal',
 		description: 'Run a shell command in the integrated terminal (requires user approval).',
 	},
+	{
+		name: 'write_file',
+		description: 'Create or overwrite a workspace file with the given content (requires user approval).',
+	},
+	{
+		name: 'edit_file',
+		description: 'Replace a unique old_string with new_string in a workspace file (requires user approval).',
+	},
 ];
 
-export type KcodeAgentToolName = 'read_file' | 'search' | 'terminal';
+export type KcodeAgentToolName = 'read_file' | 'search' | 'terminal' | 'write_file' | 'edit_file';
 
 export interface AgentToolCall {
 	readonly id?: string;

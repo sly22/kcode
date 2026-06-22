@@ -43,9 +43,27 @@ delete pkg.distro;
 pkg.author = { name: 'Kcode' };
 pkg.repository = { type: 'git', url: 'https://github.com/sly22/kcode.git' };
 pkg.bugs = { url: 'https://github.com/sly22/kcode/issues' };
+// KCODE: Copilot 미포함 — watch/compile 스크립트에서 제거
+pkg.scripts.compile = 'npm run compile-client';
+pkg.scripts.transpile = 'npm-run-all2 -lp transpile-client transpile-extensions';
+pkg.scripts.watch = 'npm-run-all2 -lp watch-client-transpile watch-client watch-extensions';
+pkg.scripts['watch-transpile'] = 'npm-run-all2 -lp watch-client-transpile watch-extensions';
+for (const key of ['compile-copilot', 'watch-copilot', 'watch-copilotd', 'kill-watch-copilotd']) {
+	delete pkg.scripts[key];
+}
 fs.writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
 "@ $pkgPath
 Write-Host "  package.json"
+
+# GitHub Copilot 확장 비활성화 (extensions/copilot → 스캔 제외)
+$copilotPkg = Join-Path $vscode "extensions\copilot\package.json"
+$copilotDisabled = Join-Path $vscode "extensions\copilot\package.json.kcode-disabled"
+if (Test-Path $copilotPkg) {
+    if (-not (Test-Path $copilotDisabled)) {
+        Move-Item -Force $copilotPkg $copilotDisabled
+    }
+    Write-Host "  extensions/copilot (disabled)"
+}
 
 # 아이콘 placeholder (원본 code 자산 → kcode 이름 복사)
 $iconPairs = @(
@@ -136,6 +154,69 @@ if (Test-Path $gettingStarted) {
         [System.IO.File]::WriteAllText($gettingStarted, $content)
         Write-Host "  gettingStartedContent.ts (Kcode strings)"
     }
+}
+
+# 온보딩 Variation A — Kcode 환영 문구 (// KCODE: 마커)
+$onboardingVariationA = Join-Path $vscode "src\vs\workbench\contrib\welcomeGettingStarted\browser\onboardingVariationA.ts"
+if (Test-Path $onboardingVariationA) {
+    $content = Get-Content $onboardingVariationA -Raw
+    if ($content -notmatch 'KCODE: start - onboarding variation A') {
+        $content = $content -replace 'Welcome to VS Code', 'Welcome to Kcode'
+        $content = $content -replace 'Sign in to use GitHub Copilot\.', 'Configure your LLM provider in Kcode settings to use AI features.'
+        $marker = "/*---------------------------------------------------------------------------------------------"
+        if ($content.Contains($marker)) {
+            $content = $content.Replace($marker, "// KCODE: start - onboarding variation A`n$marker")
+        }
+        [System.IO.File]::WriteAllText($onboardingVariationA, $content)
+        Write-Host "  onboardingVariationA.ts (Kcode strings)"
+    }
+}
+
+# Chat setup — Copilot 로그인/설정 문구를 Kcode로 (// KCODE: 마커)
+$chatSetupRunner = Join-Path $vscode "src\vs\workbench\contrib\chat\browser\chatSetup\chatSetupRunner.ts"
+if (Test-Path $chatSetupRunner) {
+    $content = Get-Content $chatSetupRunner -Raw
+    if ($content -notmatch 'KCODE: start - chat setup rebrand') {
+        $content = $content -replace 'Sign in to use GitHub Copilot', 'Configure Kcode AI'
+        $content = $content -replace '\{3\} Copilot may show', '{3} Kcode AI may use'
+        $marker = "/*---------------------------------------------------------------------------------------------"
+        if ($content.Contains($marker)) {
+            $content = $content.Replace($marker, "// KCODE: start - chat setup rebrand`n$marker")
+        }
+        [System.IO.File]::WriteAllText($chatSetupRunner, $content)
+        Write-Host "  chatSetupRunner.ts (Kcode strings)"
+    }
+}
+
+# Fallback — src 내 "Welcome to VS Code" 잔여 문자열 일괄 치환
+$welcomeFiles = Get-ChildItem -Path (Join-Path $vscode "src") -Recurse -Include *.ts,*.tsx -File -ErrorAction SilentlyContinue |
+    Where-Object { (Get-Content $_.FullName -Raw) -match 'Welcome to VS Code' }
+foreach ($file in $welcomeFiles) {
+    $content = Get-Content $file.FullName -Raw
+    if ($content -notmatch 'KCODE: welcome rebrand applied') {
+        $content = $content -replace 'Welcome to VS Code', 'Welcome to Kcode'
+        $content = "// KCODE: welcome rebrand applied`n" + $content
+        [System.IO.File]::WriteAllText($file.FullName, $content)
+        $rel = $file.FullName.Substring($vscode.Path.Length + 1)
+        Write-Host "  $rel (Welcome to Kcode)"
+    }
+}
+
+# Copilot CLI sessions — product.json sessionsWindowAllowedExtensions: [] 로 비활성화됨 (branding/product.json)
+
+# codicon.ttf — UI 아이콘 폰트 (transpile-client만 실행 시 out/에 누락됨)
+$codiconNpm = Join-Path $vscode "node_modules\@vscode\codicons\dist\codicon.ttf"
+if (Test-Path $codiconNpm) {
+    foreach ($rel in @(
+        "src\vs\base\browser\ui\codicons\codicon\codicon.ttf",
+        "out\vs\base\browser\ui\codicons\codicon\codicon.ttf"
+    )) {
+        $dest = Join-Path $vscode $rel
+        $destDir = Split-Path $dest -Parent
+        if (-not (Test-Path $destDir)) { New-Item -ItemType Directory -Force -Path $destDir | Out-Null }
+        Copy-Item -Force $codiconNpm $dest
+    }
+    Write-Host "  codicon.ttf (src + out)"
 }
 
 Write-Host "Kcode 리브랜딩 완료."

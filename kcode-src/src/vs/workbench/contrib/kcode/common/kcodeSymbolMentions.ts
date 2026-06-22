@@ -38,7 +38,7 @@ export async function resolveSymbolMention(
 
 	const folders = workspaceService.getWorkspace().folders;
 	for (const folder of folders) {
-		const shallowTargets = ['kcode-src', 'src'];
+		const shallowTargets = ['kcode-src', 'src', folder.name];
 		for (const sub of shallowTargets) {
 			const file = await resolveWorkspaceFile(`${sub}/${symbolName}.ts`, fileService, workspaceService);
 			if (file) {

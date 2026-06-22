@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kcode — AI 네이티브 코드 에디터</title>
+  <meta name="description" content="채팅, 인라인 편집, 에이전트, 탭 자동완성을 갖춘 한국어 우선 개발 환경">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo-link">
+      <img src="assets/logo.svg" alt="Kcode logo" width="32" height="32">
+      <span class="logo-text">Kcode <span>케이코드</span></span>
+    </a>
+    <nav class="nav">
+      <a href="index.html" class="active">홈</a>
+      <a href="download.html">다운로드</a>
+      <a href="docs.html">문서</a>
+      <a href="https://github.com/sly22/kcode" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </nav>
+    <a href="download.html" class="btn btn-primary">다운로드</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-content">
+        <p class="badge"><span class="badge-dot"></span>AI-native · Korean-first</p>
+        <h1><span class="gradient-text">Kcode</span><br>AI 네이티브 코드 에디터</h1>
+        <p class="hero-desc">채팅, 인라인 편집, 에이전트, 탭 자동완성을 갖춘 한국어 우선 개발 환경</p>
+        <div class="hero-actions">
+          <a href="download.html" class="btn btn-primary">무료 다운로드</a>
+          <a href="docs.html" class="btn btn-secondary">시작하기</a>
+          <a href="https://github.com/sly22/kcode" class="btn btn-ghost" target="_blank" rel="noopener noreferrer">GitHub →</a>
+        </div>
+      </div>
+
+      <div class="mockup">
+        <div class="mockup-bar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="mockup-title">kcode — main.ts</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-sidebar">
+            <div>src/</div>
+            <div>lib/</div>
+            <div>.kcode/</div>
+          </div>
+          <div class="mockup-code">
+            <p><span class="kw">async function</span> <span class="fn">main</span><span class="muted">() {</span></p>
+            <p class="muted">&nbsp;&nbsp;<span class="kw">const</span> result = <span class="fn">await</span> agent.run(</p>
+            <p class="str">&nbsp;&nbsp;&nbsp;&nbsp;"리팩터링해 줘"</p>
+            <p class="muted">&nbsp;&nbsp;);</p>
+            <p class="muted">}</p>
+          </div>
+          <div class="mockup-chat">
+            <p class="mockup-chat-label">Kcode Chat</p>
+            <p>이 함수를 에러 핸들링과 함께 리팩터링할까요?</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head">
+        <h2>개발에 필요한 AI, 한곳에</h2>
+        <p>채팅부터 에이전트까지 — 워크플로를 끊지 않는 AI 기능</p>
+      </div>
+      <div class="features">
+        <div class="card">
+          <div class="card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"/></svg></div>
+          <h3>AI 채팅 <span>Chat</span></h3>
+          <p>파일, 선택 영역, 터미널 출력을 컨텍스트로 붙여 코드베이스에 대해 질문하세요.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"/></svg></div>
+          <h3>인라인 편집 <span>Ctrl+K</span></h3>
+          <p>선택한 코드를 자연어로 변환·생성합니다. 리팩터링과 보일러플레이트 작성에 최적화.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/></svg></div>
+          <h3>에이전트 모드 <span>Agent</span></h3>
+          <p>파일 편집, 터미널, 검색 도구를 호출하며 작업을 자율적으로 수행합니다.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg></div>
+          <h3>탭 자동완성 <span>Tab Completion</span></h3>
+          <p>고스트 텍스트와 Next Edit Suggestion으로 흐름을 끊지 않고 코딩하세요.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21M6 12h.008v.008H6V12zm2.25 0h.008v.008H8.25V12zm2.25 0h.008v.008H10.5V12zm2.25 0h.008v.008H12.75V12zm2.25 0h.008v.008H15V12zm2.25 0h.008v.008H17.25V12z"/></svg></div>
+          <h3>모델 선택 <span>Model Picker</span></h3>
+          <p>OpenAI, Anthropic, 로컬 LLM 등 원하는 모델을 프로젝트별로 전환합니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="cta-box">
+        <div class="cta-box-inner">
+          <h2>지금 바로 시작하세요</h2>
+          <p>Windows, macOS, Linux용 빌드가 준비되면 GitHub Releases에서 다운로드할 수 있습니다.</p>
+          <div class="cta-actions">
+            <a href="download.html" class="btn btn-primary">다운로드 페이지</a>
+            <a href="docs.html" class="btn btn-secondary">설치 가이드 보기</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <p class="footer-brand">Kcode</p>
+        <p class="sub">AI 네이티브 코드 에디터</p>
+        <p class="sub-en">AI-native code editor</p>
+      </div>
+      <div>
+        <p class="footer-label">링크</p>
+        <ul class="footer-links">
+          <li><a href="download.html">다운로드</a></li>
+          <li><a href="docs.html">시작하기</a></li>
+          <li><a href="https://github.com/sly22/kcode" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-label">에디터 연동</p>
+        <ul class="footer-mono">
+          <li><span class="purple">kcode://</span> 프로토콜</li>
+          <li><span class="blue">/api/models.json</span></li>
+          <li><span class="blue">https://kcode.dev/api/updates.json</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-meta">
+      <p>© 2026 Kcode. MIT License.</p>
+      <p>데이터 폴더: <code>.kcode</code></p>
+    </div>
+    <div class="footer-company">
+      <p class="brand">VASO</p>
+      <p>상호: 주식회사 바소 · 대표: 이정원 · 사업자등록번호: 798-86-02341</p>
+      <p>주소: 광주광역시 남구 회재로 1224번길 16-1, 2F · <a href="mailto:help@vnsoft.co.kr">help@vnsoft.co.kr</a></p>
+      <p>통신판매업신고번호: 제2021-광주남구-0614호 · 개인정보 보호책임자: 이희찬</p>
+      <p>고객센터 <a href="tel:07078065004">070.7806.5004</a>, Fax 050.8090.5004</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -23,3 +23,6 @@ Thumbs.db
 .env.*
 *.pem
 credentials.json
+
+# Local dev tools (portable Node etc.)
+.tools/

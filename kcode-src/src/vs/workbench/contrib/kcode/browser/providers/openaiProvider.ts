@@ -107,6 +107,7 @@ export class OpenAIProvider implements IKcodeModelProvider {
 		};
 		if (request.tools && request.tools.length > 0) {
 			body.tools = toOpenAITools(request.tools);
+			body.tool_choice = 'auto';
 		}
 
 		const toolCallMap = new Map<number, ToolCallAccumulator>();
@@ -149,7 +150,7 @@ export class OpenAIProvider implements IKcodeModelProvider {
 				}
 
 				const finishReason = choice?.finish_reason;
-				if (finishReason === 'tool_calls') {
+				if (finishReason && toolCallMap.size > 0) {
 					yield { toolCalls: this.parseToolCalls(toolCallMap), done: true };
 					return;
 				}
@@ -158,7 +159,11 @@ export class OpenAIProvider implements IKcodeModelProvider {
 					return;
 				}
 			}
-			yield { done: true };
+			if (toolCallMap.size > 0) {
+				yield { toolCalls: this.parseToolCalls(toolCallMap), done: true };
+			} else {
+				yield { done: true };
+			}
 		} catch (err) {
 			yield {
 				content: localize('kcode.openai.requestFailed', 'OpenAI request failed: {0}', String(err)),

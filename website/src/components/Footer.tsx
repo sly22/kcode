@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SITE, INTEGRATION } from "@/lib/constants";
+import { SITE, INTEGRATION, COMPANY } from "@/lib/constants";
 
 export function Footer() {
   return (
@@ -31,6 +31,28 @@ export function Footer() {
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-border/40 pt-8 text-xs text-muted sm:flex-row">
           <p>© {new Date().getFullYear()} Kcode. MIT License.</p>
           <p>데이터 폴더: <code className="text-foreground">{SITE.dataFolder}</code></p>
+        </div>
+        <div className="mt-8 border-t border-border/40 pt-8 text-xs leading-relaxed text-muted/80">
+          <p className="font-semibold text-muted">{COMPANY.brand}</p>
+          <p className="mt-2">
+            상호: {COMPANY.legalName} · 대표: {COMPANY.representative} · 사업자등록번호: {COMPANY.businessRegistrationNumber}
+          </p>
+          <p className="mt-1">
+            주소: {COMPANY.address} ·{" "}
+            <a href={`mailto:${COMPANY.email}`} className="hover:text-foreground">
+              {COMPANY.email}
+            </a>
+          </p>
+          <p className="mt-1">
+            통신판매업신고번호: {COMPANY.mailOrderReportNumber} · 개인정보 보호책임자: {COMPANY.privacyOfficer}
+          </p>
+          <p className="mt-1">
+            고객센터{" "}
+            <a href={`tel:${COMPANY.customerCenter.replace(/\./g, "")}`} className="hover:text-foreground">
+              {COMPANY.customerCenter}
+            </a>
+            , Fax {COMPANY.fax}
+          </p>
         </div>
       </div>
     </footer>

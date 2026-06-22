@@ -9,6 +9,8 @@
 /coverage
 /.next/
 /out/
+/static-deploy/
+/kcode-static-site.zip
 /build
 .DS_Store
 *.pem

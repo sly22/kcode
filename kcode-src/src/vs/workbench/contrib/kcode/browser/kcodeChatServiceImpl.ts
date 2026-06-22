@@ -2,11 +2,11 @@
  *  Copyright (c) Kcode contributors. MIT License.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable } from '../../../../../base/common/lifecycle.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { IInstantiationService } from '../../../../../platform/instantiation/common/instantiation.js';
-import { ChatDelta, ChatRequest, IKcodeChatService } from '../../common/kcodeChatService.js';
-import { modelProviderPrefix, ModelInfo } from '../../common/kcodeModels.js';
+import { Disposable } from '../../../../base/common/lifecycle.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { ChatDelta, ChatRequest, IKcodeChatService } from '../common/kcodeChatService.js';
+import { modelProviderPrefix, ModelInfo } from '../common/kcodeModels.js';
 import { AnthropicProvider } from './providers/anthropicProvider.js';
 import { IKcodeModelProvider } from './providers/ikcodeProvider.js';
 import { OllamaProvider } from './providers/ollamaProvider.js';

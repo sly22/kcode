@@ -55,7 +55,7 @@ export class KcodeModelPicker extends Disposable {
 			options,
 			selectedIndex,
 			this.contextViewService,
-			getSelectBoxStyles(),
+			getSelectBoxStyles({}),
 			{ ariaLabel: localize('kcode.modelPicker.aria', 'Select AI model') }
 		));
 		this.selectBox.render(container);

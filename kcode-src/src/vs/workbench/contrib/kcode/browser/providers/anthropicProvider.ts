@@ -23,7 +23,7 @@ const ANTHROPIC_MODELS: ReadonlyArray<{ id: string; label: string }> = [
 
 interface AnthropicStreamEvent {
 	type?: string;
-	delta?: { type?: string; text?: string; partial_json?: string };
+	delta?: { type?: string; text?: string; partial_json?: string; stop_reason?: string };
 	content_block?: { type?: string; id?: string; name?: string };
 	index?: number;
 	error?: { message?: string };
@@ -75,6 +75,7 @@ export class AnthropicProvider implements IKcodeModelProvider {
 		let currentToolId: string | undefined;
 		let currentToolName: string | undefined;
 		let toolInputJson = '';
+		const pendingToolCalls: AgentToolCall[] = [];
 
 		try {
 			for await (const data of fetchSseData(this.requestService, {
@@ -107,19 +108,34 @@ export class AnthropicProvider implements IKcodeModelProvider {
 					toolInputJson += event.delta.partial_json;
 				}
 
-				if (event.type === 'message_stop') {
+				if (event.type === 'content_block_stop' && currentToolName) {
+					pendingToolCalls.push(...this.parseAnthropicToolCall(currentToolId, currentToolName, toolInputJson));
+					currentToolId = undefined;
+					currentToolName = undefined;
+					toolInputJson = '';
+				}
+
+				const stopReason = event.type === 'message_delta' ? event.delta?.stop_reason : undefined;
+				if (event.type === 'message_stop' || stopReason === 'tool_use') {
 					if (currentToolName) {
-						const toolCalls = this.parseAnthropicToolCall(currentToolId, currentToolName, toolInputJson);
-						if (toolCalls.length > 0) {
-							yield { toolCalls, done: true };
-							return;
-						}
+						pendingToolCalls.push(...this.parseAnthropicToolCall(currentToolId, currentToolName, toolInputJson));
+						currentToolId = undefined;
+						currentToolName = undefined;
+						toolInputJson = '';
+					}
+					if (pendingToolCalls.length > 0) {
+						yield { toolCalls: pendingToolCalls, done: true };
+						return;
 					}
 					yield { done: true };
 					return;
 				}
 			}
-			yield { done: true };
+			if (pendingToolCalls.length > 0) {
+				yield { toolCalls: pendingToolCalls, done: true };
+			} else {
+				yield { done: true };
+			}
 		} catch (err) {
 			yield {
 				content: localize('kcode.anthropic.requestFailed', 'Anthropic request failed: {0}', String(err)),

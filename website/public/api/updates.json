@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1-dev",
+  "url": "https://github.com/sly22/kcode/releases/tag/v0.0.1-dev",
+  "name": "0.0.1-dev",
+  "notes": "Phase 3 agent mode, @ picker, tab completion skeleton. 정식 빌드 준비 중.",
+  "pub_date": "Thu, 19 Jun 2026 00:00:00 GMT",
+  "platforms": {
+    "win32-x64": { "url": "https://kcode.dev/download", "placeholder": true },
+    "darwin-arm64": { "url": "https://kcode.dev/download", "placeholder": true },
+    "darwin-x64": { "url": "https://kcode.dev/download", "placeholder": true },
+    "linux-x64": { "url": "https://kcode.dev/download", "placeholder": true }
+  }
+}

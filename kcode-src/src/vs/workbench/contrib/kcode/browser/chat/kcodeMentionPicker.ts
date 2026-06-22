@@ -23,7 +23,7 @@ export class KcodeMentionPicker extends Disposable {
 	private onPick: ((item: MentionPickerItem) => void) | undefined;
 
 	constructor(
-		private readonly parent: HTMLElement,
+		parent: HTMLElement,
 		@IEditorService private readonly editorService: IEditorService,
 		@IFileService private readonly fileService: IFileService,
 		@IWorkspaceContextService private readonly workspaceService: IWorkspaceContextService,
